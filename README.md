@@ -147,3 +147,6 @@ Nguồn gốc Feather-Fury-12.2.html từ người dùng, SHA256 cố định; c
 
 ### Game touch-policy revision
 Khóa zoom ở bốn trang game bằng viewport 1:1, touch-action cho canvas và menu, chặn gesture Safari và touch đa điểm; giữ cuộn menu một ngón và hướng xoay. Không áp dụng khóa zoom cho sảnh. Legacy 9.2, CUBIQ 1.2, BLOCK NOVA 1.2, FEATHER FURY 12.2; bản cũ vẫn chơi offline cho đến khi người dùng cập nhật từng game. Căn lại HUD, đội hình, canvas 16:10 của Sky Odyssey, safe area và landscape. Local 34/34 unit, 4/4 CDP pinch, 7/7 layout Feather. CI thêm double tap, gesture cancellation và cập nhật cache của cả bốn module. WebKit mô phỏng không thay thế kiểm tra iPhone vật lý.
+
+### Sky Odyssey — iPhone safe-area correction
+Theo phản hồi ảnh iPhone: dành vùng an toàn trên/dưới, dùng inset thực tế với dự phòng 60/24 px khi iOS standalone dọc; HUD tách khỏi canvas ở hướng dọc, 4 cột đội hình trên màn dọc đủ cao; giữ tỷ lệ canvas 16:10, không thay đổi dữ liệu game. Màn ngắn cho phép cuộn, không ép cỡ nút. Local kiểm tra 7 hình học safe area mô phỏng, CI thêm cùng kiểm thử Chromium/WebKit. Chưa nghiệm thu iPhone vật lý.

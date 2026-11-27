@@ -28,7 +28,7 @@ def lock_touch(text,extra=''):
  return re.sub(pattern,lambda _: '<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">'+guard+extra,text,count=1)
 legacy=site/'games/legacy/index.html';old_legacy=hashlib.sha256(legacy.read_bytes()).hexdigest();assert old_legacy=='57c9451e4ee811db95135ca6069dfd42ea0469ef43120ff2bcec57a0fffbe8bd'
 for f in sorted((site/'games').glob('*/index.html')):
- text=s if f==target else f.read_text();f.write_text(lock_touch(text.replace('</head>',feather_css+'</head>',1) if f==target else text))
+ text=s if f==target else f.read_text();f.write_text(lock_touch(text.replace('</head>',feather_css+Path(__file__).with_name('safe-area.html').read_text()+'</head>',1) if f==target else text))
 new_legacy=hashlib.sha256(legacy.read_bytes()).hexdigest()
 # Pin the exact approved adapter delta without weakening the original engine audit.
 preflight=root/'tests/release-preflight.py';old_preflight=preflight.read_text();assert old_preflight.count(old_legacy)==1;preflight.write_text(old_preflight.replace(old_legacy,new_legacy))

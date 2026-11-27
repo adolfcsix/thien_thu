@@ -48,6 +48,20 @@ with tempfile.TemporaryDirectory() as tmp:
      session.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(350);assert abs(page.evaluate('visualViewport.scale')-1)<.01,(path,'pinch');session.detach()
     page.evaluate("document.querySelector('#xiTestTouchProbe').remove()")
     print('PASS',path,'offline touch policy, single touch and double tap; Chromium actual pinch',flush=True)
+   # Emulate status bar and home-indicator safe-area geometry; physical iPhone still required.
+   page.goto(url+'games/feather-fury/index.html');page.locator('#canvas').wait_for();assert page.locator('#xi-feather-safe-area').count()==1
+   page.evaluate("document.documentElement.setAttribute('data-xi-ios-standalone','');document.querySelector('#overlay').hidden=true")
+   for w,h,t,r,bt,l in [(428,926,62,0,34,0),(390,844,47,0,34,0),(320,568,20,0,0,0),(280,650,0,0,0,0),(844,390,0,47,21,47),(926,428,0,59,21,59),(1024,768,0,0,0,0)]:
+    page.set_viewport_size({'width':w,'height':h});page.evaluate("""([t,r,b,l])=>{const s=document.documentElement.style;for(const [k,v] of Object.entries({top:t,right:r,bottom:b,left:l}))s.setProperty('--xi-safe-'+k,v+'px');window.scrollTo(0,0)}""",[t,r,bt,l])
+    q=page.evaluate("""()=>{const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,b:r.bottom,right:r.right}};return {head:rect('.top'),wallet:rect('.wallet'),canvas:rect('canvas'),hud:rect('.hud'),power:rect('#power'),sw:document.documentElement.scrollWidth,scale:visualViewport.scale,cols:getComputedStyle(document.querySelector('.deck')).gridTemplateColumns}}""")
+    assert q['head']['y']>=t-1 and q['head']['x']>=l-1 and q['head']['right']<=w-r+1 and q['wallet']['right']<=w-r+1 and q['sw']<=w+1,(w,h,q)
+    assert abs(q['canvas']['w']/q['canvas']['h']-1.6)<.02 and abs(q['scale']-1)<.01,(w,h,q)
+    if h>w:assert q['head']['y']>=59 and q['hud']['b']<=q['canvas']['y']+1,(w,h,q)
+    if h>=844 and w>=340:assert q['cols'].count('px')==4 and q['power']['b']<=h-bt+1,(w,h,q)
+    page.evaluate("document.querySelector('#menu').click()");panel=page.locator('.panel').bounding_box();assert panel['y']>=t-1 and panel['x']>=l-1 and panel['x']+panel['width']<=w-r+1 and panel['y']+panel['height']<=h-bt+1,(w,h,panel)
+    page.evaluate("document.querySelector('#overlay').hidden=true")
+   print('PASS 7 Feather safe-area geometries, portrait HUD, card grid and canvas ratio',flush=True)
+   page.set_viewport_size({'width':390,'height':844})
    page.goto(url);page.locator('#discover h2').wait_for();assert rpc(page,'DETAILS')['value']==before
    page.get_by_role('button',name='Cài đặt',exact=True).click()
    # Verify ZIP bytes against the exact release kit while the original site is unavailable.
