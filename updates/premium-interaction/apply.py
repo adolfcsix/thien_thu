@@ -1,0 +1,44 @@
+from pathlib import Path
+import hashlib,json,subprocess,sys,zipfile
+root=Path(sys.argv[1]);site=root/'site'
+protected={p:hashlib.sha256(p.read_bytes()).hexdigest() for p in [site/'manifest.webmanifest',*filter(Path.is_file,(site/'games').rglob('*')),*filter(Path.is_file,(site/'assets').rglob('*'))]}
+def patch(path,old,new):
+ p=root/path;s=p.read_text();assert s.count(old)==1,(path,old,s.count(old));p.write_text(s.replace(old,new))
+patch('site/index.html','</main><script type="module" src="hub.js">','''</main><dialog id="resourceDialog" aria-labelledby="resourceTitle" aria-describedby="resourceDescription"><div class="xi-dialog-top"><span class="eyebrow">QUẢN LÝ TÀI NGUYÊN</span><button type="button" id="resourceClose" aria-label="Đóng hộp thoại">×</button></div><h2 id="resourceTitle">Gỡ tài nguyên?</h2><p id="resourceDescription"></p><p class="xi-dialog-save">Tiến trình và dữ liệu lưu của bạn không bị xóa.</p><form method="dialog" class="xi-dialog-actions"><button value="cancel" class="secondary" autofocus>Hủy</button><button value="remove" class="primary">Xác nhận gỡ</button></form></dialog><script type="module" src="hub.js">''')
+patch('site/index.html','<div class="surface-tuning">','''<label class="switch-row"><span><strong>Chuyển động giao diện</strong><small>Chuyển cảnh mềm và phản hồi nút; tôn trọng cài đặt giảm chuyển động của thiết bị.</small></span><input id="motionEnabled" type="checkbox" checked></label><div class="surface-tuning">''')
+patch('site/hub.js',"()=>{if(confirm(`Gỡ toàn bộ tài nguyên ${g.title}, kể cả bản dự phòng? Tiến trình vẫn được giữ.`))task('REMOVE',g)}","()=>confirmRemoval(g)")
+patch('site/hub.js','const formatBytes=n=>', '''const resourceDialog=$('resourceDialog');let pendingRemoval=null,returnFocus=null;
+function confirmRemoval(g){if(busy||resourceDialog.open)return;if(typeof resourceDialog.showModal!=='function'){if(confirm('Gỡ tài nguyên '+g.title+'? Tiến trình vẫn được giữ.'))task('REMOVE',g);return}pendingRemoval=g;returnFocus=document.activeElement;resourceDialog.returnValue='cancel';$('resourceDescription').textContent='Gỡ toàn bộ tài nguyên offline của '+g.title+', kể cả bản dự phòng. Bạn có thể tải lại khi có mạng.';resourceDialog.showModal()}
+$('resourceClose').onclick=()=>resourceDialog.close('cancel');
+resourceDialog.addEventListener('cancel',ev=>{ev.preventDefault();resourceDialog.close('cancel')});
+resourceDialog.addEventListener('close',()=>{const g=pendingRemoval;pendingRemoval=null;const accepted=resourceDialog.returnValue==='remove';if(returnFocus?.isConnected&&!returnFocus.disabled)returnFocus.focus({preventScroll:true});else $(view).querySelector('h2')?.focus({preventScroll:true});returnFocus=null;if(accepted&&g&&!busy)task('REMOVE',g)});
+const formatBytes=n=>''')
+patch('site/hub.js','applySurface();docRoot.dataset.tab=view;applyGlass();startIntro();','''applySurface();docRoot.dataset.tab=view;applyGlass();
+const MOTION='xi:ui:motion-v1',motion=$('motionEnabled');motion.checked=readPref('localStorage',MOTION)!=='0';function applyMotion(){docRoot.dataset.motion=motion.checked?'on':'off'}motion.onchange=()=>{writePref('localStorage',MOTION,motion.checked?'1':'0');applyMotion()};applyMotion();startIntro();''')
+p=site/'hub.css';p.write_text(p.read_text()+'''
+/* Premium Interaction: native top-layer focus containment, bounded dialog sizing. */
+#resourceDialog{box-sizing:border-box;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:clamp(16px,4vw,28px);width:min(440px,calc(100% - 32px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));max-width:none;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:auto;overscroll-behavior:contain;margin:auto;box-shadow:0 20px 64px #0007;overflow-wrap:anywhere}
+#resourceDialog::backdrop{background:#080706a8}#resourceDialog .xi-dialog-top{display:flex;align-items:center;justify-content:space-between;gap:10px}#resourceDialog .xi-dialog-top button{flex:none;width:44px;padding:0;font-size:24px;border-radius:50%}#resourceDialog h2{font-size:clamp(24px,6vw,36px);margin:10px 0}#resourceDialog p{font-size:14px}#resourceDialog .xi-dialog-save{border-inline-start:2px solid var(--gold);padding-inline-start:12px;color:var(--ink)}#resourceDialog .xi-dialog-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:20px}#resourceDialog button{min-width:0;white-space:normal;overflow-wrap:anywhere}#resourceDialog button.primary{background:var(--gold);color:var(--accent-ink,#302215);font-weight:700}html[data-glass=on] #resourceDialog{background:linear-gradient(140deg,var(--surface-raised),var(--surface));box-shadow:inset 0 1px 0 #fff2,0 20px 64px #0007}html[data-glass=on] #resourceDialog button{box-shadow:inset 0 1px 0 #fff2}
+@media(max-width:320px){#resourceDialog .xi-dialog-actions{grid-template-columns:minmax(0,1fr)}}
+@media(max-height:420px){#resourceDialog{padding:16px}#resourceDialog .xi-dialog-actions{margin-top:12px}}
+@media(prefers-reduced-motion:no-preference){html[data-motion=on] #resourceDialog[open]{animation:xi-dialog-in 180ms cubic-bezier(.2,.75,.2,1)}@keyframes xi-dialog-in{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}}
+html[data-motion=off] .shell *,html[data-motion=off] .shell nav::before,html[data-motion=off] .shell input::after,html[data-motion=off] #resourceDialog,html[data-motion=off] #resourceDialog button{animation:none!important;transition:none!important}html[data-motion=off] button:active:not(:disabled){transform:none}
+@media(prefers-reduced-motion:reduce){#resourceDialog,#resourceDialog button{animation:none!important;transition:none!important}}
+''')
+for path in ['tests/ui.py','tests/browser.py']:
+ patch(path,"page.get_by_role('button',name='Gỡ tài nguyên').click();page.get_by_text('Đã gỡ tài nguyên.","page.get_by_role('button',name='Gỡ tài nguyên').click();page.get_by_role('button',name='Xác nhận gỡ').click();page.get_by_text('Đã gỡ tài nguyên.")
+patch('tests/ui.py',' b.close()', ''' # Premium dialog: cancel without mutation, live rotation, keyboard and preference.
+ page=b.new_page(viewport={'width':280,'height':650},reduced_motion='reduce');errs=[];page.on('pageerror',lambda e:errs.append(str(e)));page.set_content(html.replace('<script>let ready=true;', '<script>const motionStore={};Object.defineProperty(window,"localStorage",{value:{getItem(k){return motionStore[k]??null},setItem(k,v){motionStore[k]=String(v)},removeItem(k){delete motionStore[k]}}});let ready=true;'))
+ page.get_by_role('button',name='Thư viện',exact=True).click();page.get_by_role('button',name='Gỡ tài nguyên').click();dlg=page.locator('#resourceDialog');assert dlg.is_visible();assert page.evaluate('document.activeElement.value')=='cancel'
+ for w,h in [(280,650),(844,320),(390,844),(1024,768)]:
+  page.set_viewport_size({'width':w,'height':h});box=dlg.bounding_box();assert box['x']>=0 and box['y']>=0 and box['x']+box['width']<=w+1 and box['y']+box['height']<=h+1,(w,h,box);assert page.evaluate('document.documentElement.scrollWidth<=innerWidth');assert dlg.evaluate('e=>e.scrollWidth<=e.clientWidth+1')
+ page.keyboard.press('Escape');assert not dlg.is_visible();assert page.get_by_role('button',name='Gỡ tài nguyên').is_visible();assert page.evaluate('ready')
+ page.get_by_role('button',name='Gỡ tài nguyên').click();page.get_by_role('button',name='Hủy',exact=True).click();assert not dlg.is_visible();assert page.evaluate('ready')
+ page.get_by_role('button',name='Gỡ tài nguyên').click();page.screenshot(path=str(root.parent/'premium-dialog.png'));page.get_by_role('button',name='Xác nhận gỡ').click();page.get_by_text('Đã gỡ tài nguyên. Tiến trình vẫn còn.').wait_for();assert not page.evaluate('ready')
+ page.get_by_role('button',name='Cài đặt',exact=True).click();page.locator('#motionEnabled').uncheck();assert page.locator('html').get_attribute('data-motion')=='off';assert page.evaluate("localStorage.getItem('xi:ui:motion-v1')")=='0';assert page.locator('nav').evaluate("e=>getComputedStyle(e,'::before').transitionDuration")=='0s';page.locator('#motionEnabled').check();assert page.evaluate("localStorage.getItem('xi:ui:motion-v1')")=='1';assert not errs,errs;page.close();print('PASS premium dialog, cancel/confirm, rotation and motion preference')
+ b.close()''')
+p=root/'integration/games.json';d=json.loads(p.read_text());d['hubVersion']='1.14.0';p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n');subprocess.run(['node','tools/catalog.mjs','--write'],cwd=root,check=True)
+assert all(hashlib.sha256(p.read_bytes()).hexdigest()==h for p,h in protected.items())
+with zipfile.ZipFile(root.parent/'candidate.zip','w',zipfile.ZIP_DEFLATED) as z:
+ for p in sorted(root.rglob('*')):
+  if p.is_file() and ('site' in p.relative_to(root).parts or p.suffix not in ('.pyc','.png')):z.write(p,p.relative_to(root))

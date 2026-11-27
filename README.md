@@ -126,3 +126,6 @@ Chống tràn khung bằng intrinsic sizing, xuống dòng cho tiêu đề và n
 
 ## F1.13 — Adaptive Devices & Surface Tuning
 Điều hướng dưới cho điện thoại dọc; thanh bên thích ứng khi xoay ngang từ 700px; bố cục máy tính bảng và lưới thư viện rộng cho desktop. Thanh chỉnh độ trong kính và mức hiện ảnh nền giới hạn để duy trì khả năng đọc, lưu riêng trên thiết bị. Giữ manifest, tất cả module và artwork nguyên byte. Kiểm thử 144 tổ hợp khung và 32 lần chuyển tab trong 8 lần resize liên tiếp; nghiệm thu thật Chromium/WebKit và iPhone vẫn là cổng phát hành. Không khóa hướng xoay của ứng dụng.
+
+## F1.14 — Premium Interaction
+Hộp thoại gỡ tài nguyên dùng native dialog top layer với bề mặt Xi, nút hủy mặc định, Escape, giới hạn chiều cao theo viewport và bảo toàn save. Fallback confirm chỉ dùng nếu trình duyệt không hỗ trợ dialog. Công tắc chuyển động độc lập với hiệu ứng kính và giảm chuyển động hệ điều hành. Giữ nguyên module game, ảnh bìa, manifest và các khóa lưu. Kiểm thử UI mô phỏng 14/14, layout 144/144, resize/tab 32/32; CI nghiệm thu thật hai trình duyệt và bảo toàn cache/save. Chưa xác nhận thiết bị iPhone vật lý.
