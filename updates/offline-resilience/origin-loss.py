@@ -61,6 +61,21 @@ with tempfile.TemporaryDirectory() as tmp:
     page.locator('#menu').click();panel=page.locator('.panel').bounding_box();assert panel['y']>=t-1 and panel['x']>=l-1 and panel['x']+panel['width']<=w-r+1 and panel['y']+panel['height']<=h-bt+1,(w,h,panel)
     page.locator('#go').click();assert not page.locator('#game').evaluate('e=>e.inert')
    print('PASS 7 Feather safe-area geometries, portrait HUD, card grid and canvas ratio',flush=True)
+   for game,head,canvas,menu,panel,close,ratio in [('legacy','header','#field','#settingsBtn','#settings','#closeSettings',5/3),('cubiq','.top','canvas','[data-act=menu]','.panel','[data-act=resume]',None),('block-nova','header','#board','#settings','.panel',None,360/440)]:
+    page.goto(url+'games/'+game+'/index.html');page.locator(head).first.wait_for()
+    if game=='legacy':
+     page.locator('#brandIntro').wait_for(state='hidden',timeout=12000);page.locator('#newBtn').click();page.locator('#mapList button').first.click();page.locator('#field').wait_for()
+    for w,h,t,r,bt,l in [(428,926,62,0,34,0),(390,844,47,0,34,0),(320,568,20,0,0,0),(280,650,0,0,0,0),(844,390,0,47,21,47),(926,428,0,59,21,59),(568,320,0,30,21,30),(1024,768,0,0,0,0)]:
+     page.set_viewport_size({'width':w,'height':h});page.evaluate("""([t,r,b,l])=>{const root=document.documentElement;root.setAttribute('data-xi-ios-standalone','');for(const [k,v] of Object.entries({top:t,right:r,bottom:b,left:l}))root.style.setProperty('--xi-safe-'+k,v+'px');window.scrollTo(0,0)}""",[t,r,bt,l]);page.wait_for_timeout(100)
+     q=page.evaluate("""([head,canvas])=>{const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,right:r.right}};return {head:rect(head),cv:rect(canvas),sw:document.documentElement.scrollWidth,scale:visualViewport.scale}}""",[head,canvas])
+     assert q['head']['y']>=t-1 and q['head']['x']>=l-1 and q['head']['right']<=w-r+1 and q['sw']<=w+1,(game,w,h,q)
+     assert q['cv']['x']>=l-1 and q['cv']['right']<=w-r+1 and abs(q['scale']-1)<.01,(game,w,h,q)
+     if ratio:assert abs(q['cv']['w']/q['cv']['h']-ratio)<.03,(game,w,h,q)
+     page.locator(menu).click();d=page.locator(panel).first;d.wait_for();z=d.bounding_box();assert z['x']>=l-1 and z['y']>=t-1 and z['x']+z['width']<=w-r+1 and z['y']+z['height']<=h-bt+1,(game,w,h,z)
+     if close:page.locator(close).click()
+     else:page.evaluate("document.querySelector('#overlay').hidden=true")
+    print('PASS',game,'8 offline safe-area geometries and responsive menus',flush=True)
+
    page.set_viewport_size({'width':390,'height':844})
    page.goto(url);page.locator('#discover h2').wait_for();assert rpc(page,'DETAILS')['value']==before
    page.get_by_role('button',name='Cài đặt',exact=True).click()
