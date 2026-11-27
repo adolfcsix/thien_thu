@@ -2,10 +2,10 @@ name: Xi Foundation — Validate and Deploy
 on:
   push:
     branches: [main, 'feat/multi-game-foundation']
-    paths: ['Xi_Foundation_1_1_Web_Deploy.zip']
+    paths: ['Xi_Foundation_1_2_Web_Deploy.zip']
   pull_request:
     branches: [main]
-    paths: ['Xi_Foundation_1_1_Web_Deploy.zip', '.github/workflows/pages.yml', 'tests/foundation-browser.py']
+    paths: ['Xi_Foundation_1_2_Web_Deploy.zip', '.github/workflows/pages.yml', 'tests/foundation-browser.py']
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,10 +19,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify release archives
         run: |
-          echo '9324b8e43bda594f285a2012848dc0f7c8c163be2b30295e2bdc9bb9fdcd737d  Xi_Foundation_1_1_Web_Deploy.zip' | sha256sum -c -
+          echo '45937a0558a252575e7a70aafe3837d317f2ef74b308485a389e15c416dd3ef9  Xi_Foundation_1_2_Web_Deploy.zip' | sha256sum -c -
           echo '29e827a34f4ac56c1d1341a69303367e497b78dc938ff0d9d9de5332c5132aa8  Thien_Thu_V9_0_Web_Deploy.zip' | sha256sum -c -
           mkdir -p site
-          unzip -q Xi_Foundation_1_1_Web_Deploy.zip -d site
+          unzip -q Xi_Foundation_1_2_Web_Deploy.zip -d site
           test -f site/index.html
           test -f site/sw.js
           test -f site/games/legacy/index.html
