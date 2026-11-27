@@ -2,10 +2,10 @@ name: Xi Foundation — Validate and Deploy
 on:
   push:
     branches: [main, 'feat/multi-game-foundation']
-    paths: ['Xi_Foundation_1_5_Release_Candidate.zip', '.github/workflows/pages.yml', 'tests/release-preflight.py']
+    paths: ['Xi_Foundation_1_6_Release_Candidate.zip', '.github/workflows/pages.yml', 'tests/release-preflight.py']
   pull_request:
     branches: [main]
-    paths: ['Xi_Foundation_1_5_Release_Candidate.zip', '.github/workflows/pages.yml', 'tests/release-preflight.py']
+    paths: ['Xi_Foundation_1_6_Release_Candidate.zip', '.github/workflows/pages.yml', 'tests/release-preflight.py']
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,11 +20,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify pinned candidate and original V9.0
         run: |
-          echo '3fda3e016636dc6f1fcf3a9cf607e6b97b5109d3d0dd15d363bc011ba100f666  Xi_Foundation_1_5_Release_Candidate.zip' | sha256sum -c -
+          echo 'd6c589a0990f005b27ec51c958ba2ec4588e320ed628640eabc4cdfbb87b2155  Xi_Foundation_1_6_Release_Candidate.zip' | sha256sum -c -
           echo '29e827a34f4ac56c1d1341a69303367e497b78dc938ff0d9d9de5332c5132aa8  Thien_Thu_V9_0_Web_Deploy.zip' | sha256sum -c -
-          python3 tests/release-preflight.py Thien_Thu_V9_0_Web_Deploy.zip Xi_Foundation_1_5_Release_Candidate.zip
           mkdir candidate
-          unzip -q Xi_Foundation_1_5_Release_Candidate.zip -d candidate
+          unzip -q Xi_Foundation_1_6_Release_Candidate.zip -d candidate
+          python3 candidate/tests/release-preflight.py Thien_Thu_V9_0_Web_Deploy.zip Xi_Foundation_1_6_Release_Candidate.zip
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -39,7 +39,10 @@ jobs:
           python -m pip install playwright
           python -m playwright install --with-deps chromium webkit
       - name: UI acceptance (mock messaging)
-        run: python candidate/tests/ui.py
+        run: |
+          python candidate/tests/ui.py
+          python candidate/tests/imported-ui-mock.py
+          python candidate/tests/imported-ui.py
       - name: Real Service Worker — Chromium
         run: python candidate/tests/browser.py --engine chromium --site candidate/site --baseline Thien_Thu_V9_0_Web_Deploy.zip
       - name: Real Service Worker — WebKit
