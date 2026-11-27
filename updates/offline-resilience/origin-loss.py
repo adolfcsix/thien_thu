@@ -36,6 +36,47 @@ with tempfile.TemporaryDirectory() as tmp:
    ctx.set_offline(True)
    for path,selector in [('legacy','#newBtn'),('cubiq','canvas'),('block-nova','#board'),('feather-fury','#canvas')]:
     page.goto(url+'games/'+path+'/index.html');page.locator(selector).wait_for()
+    assert page.locator('#xi-game-gesture-policy').count()==1
+    result=page.evaluate("""()=>{const t=document.createElement('button');document.body.append(t);const event=new Event('gesturestart',{cancelable:true,bubbles:true});const multi=new Event('touchmove',{cancelable:true,bubbles:true});Object.defineProperty(multi,'touches',{value:[{},{}]});const single=new Event('touchstart',{cancelable:true,bubbles:true});Object.defineProperty(single,'touches',{value:[{}]});const result=[!t.dispatchEvent(event),!t.dispatchEvent(multi),t.dispatchEvent(single),getComputedStyle(document.querySelector('canvas')).touchAction,document.querySelector('meta[name=viewport]').content];t.remove();return result}""")
+    assert result[:4]==[True,True,True,'none'] and 'maximum-scale=1' in result[4] and 'user-scalable=no' in result[4],(path,result)
+    assert abs(page.evaluate('visualViewport.scale')-1)<.01
+    page.evaluate("""()=>{const p=document.createElement('div');p.id='xiTestTouchProbe';p.style.cssText='position:fixed;inset:0;z-index:2147483647;background:transparent';document.body.append(p)}""")
+    page.touchscreen.tap(190,200);page.touchscreen.tap(190,200);page.wait_for_timeout(350);assert abs(page.evaluate('visualViewport.scale')-1)<.01,(path,'double tap')
+    if args.engine=='chromium':
+     session=ctx.new_cdp_session(page);session.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':150,'y':200,'id':0},{'x':240,'y':200,'id':1}]})
+     for n in range(1,7):session.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':150-n*10,'y':200,'id':0},{'x':240+n*10,'y':200,'id':1}]})
+     session.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(350);assert abs(page.evaluate('visualViewport.scale')-1)<.01,(path,'pinch');session.detach()
+    page.evaluate("document.querySelector('#xiTestTouchProbe').remove()")
+    print('PASS',path,'offline touch policy, single touch and double tap; Chromium actual pinch',flush=True)
+   # Emulate status bar and home-indicator safe-area geometry; physical iPhone still required.
+   page.goto(url+'games/feather-fury/index.html');page.locator('#canvas').wait_for();assert page.locator('#xi-feather-safe-area').count()==1
+   page.evaluate("document.documentElement.setAttribute('data-xi-ios-standalone','')")
+   for w,h,t,r,bt,l in [(428,926,62,0,34,0),(390,844,47,0,34,0),(320,568,20,0,0,0),(280,650,0,0,0,0),(844,390,0,47,21,47),(926,428,0,59,21,59),(1024,768,0,0,0,0)]:
+    page.set_viewport_size({'width':w,'height':h});page.evaluate("""([t,r,b,l])=>{const s=document.documentElement.style;for(const [k,v] of Object.entries({top:t,right:r,bottom:b,left:l}))s.setProperty('--xi-safe-'+k,v+'px');window.scrollTo(0,0)}""",[t,r,bt,l])
+    q=page.evaluate("""()=>{const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,b:r.bottom,right:r.right}};return {head:rect('.top'),wallet:rect('.wallet'),canvas:rect('canvas'),hud:rect('.hud'),power:rect('#power'),sw:document.documentElement.scrollWidth,scale:visualViewport.scale,cols:getComputedStyle(document.querySelector('.deck')).gridTemplateColumns}}""")
+    assert q['head']['y']>=t-1 and q['head']['x']>=l-1 and q['head']['right']<=w-r+1 and q['wallet']['right']<=w-r+1 and q['sw']<=w+1,(w,h,q)
+    assert abs(q['canvas']['w']/q['canvas']['h']-1.6)<.02 and abs(q['scale']-1)<.01,(w,h,q)
+    if h>w:assert q['head']['y']>=59 and q['hud']['b']<=q['canvas']['y']+1,(w,h,q)
+    if h>=844 and w>=340:assert q['cols'].count('px')==4 and q['power']['b']<=h-bt+1,(w,h,q)
+    page.locator('#menu').click();panel=page.locator('.panel').bounding_box();assert panel['y']>=t-1 and panel['x']>=l-1 and panel['x']+panel['width']<=w-r+1 and panel['y']+panel['height']<=h-bt+1,(w,h,panel)
+    page.locator('#go').click();assert not page.locator('#game').evaluate('e=>e.inert')
+   print('PASS 7 Feather safe-area geometries, portrait HUD, card grid and canvas ratio',flush=True)
+   for game,head,canvas,menu,panel,close,ratio in [('legacy','header','#field','#settingsBtn','#settings','#closeSettings',5/3),('cubiq','.top','canvas','[data-act=menu]','.panel','[data-act=resume]',None),('block-nova','header','#board','#settings','.panel',None,360/440)]:
+    page.goto(url+'games/'+game+'/index.html');page.locator(head).first.wait_for()
+    if game=='legacy':
+     page.locator('#brandIntro').wait_for(state='hidden',timeout=12000);page.locator('#newBtn').click();page.locator('#mapList button').first.click();page.locator('#field').wait_for()
+    for w,h,t,r,bt,l in [(428,926,62,0,34,0),(390,844,47,0,34,0),(320,568,20,0,0,0),(280,650,0,0,0,0),(844,390,0,47,21,47),(926,428,0,59,21,59),(568,320,0,30,21,30),(1024,768,0,0,0,0)]:
+     page.set_viewport_size({'width':w,'height':h});page.evaluate("""([t,r,b,l])=>{const root=document.documentElement;root.setAttribute('data-xi-ios-standalone','');for(const [k,v] of Object.entries({top:t,right:r,bottom:b,left:l}))root.style.setProperty('--xi-safe-'+k,v+'px');window.scrollTo(0,0)}""",[t,r,bt,l]);page.wait_for_timeout(100)
+     q=page.evaluate("""([head,canvas])=>{const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,right:r.right}};return {head:rect(head),cv:rect(canvas),sw:document.documentElement.scrollWidth,scale:visualViewport.scale}}""",[head,canvas])
+     assert q['head']['y']>=t-1 and q['head']['x']>=l-1 and q['head']['right']<=w-r+1 and q['sw']<=w+1,(game,w,h,q)
+     assert q['cv']['x']>=l-1 and q['cv']['right']<=w-r+1 and abs(q['scale']-1)<.01,(game,w,h,q)
+     if ratio:assert abs(q['cv']['w']/q['cv']['h']-ratio)<.03,(game,w,h,q)
+     page.locator(menu).click();d=page.locator(panel).first;d.wait_for();z=d.bounding_box();assert z['x']>=l-1 and z['y']>=t-1 and z['x']+z['width']<=w-r+1 and z['y']+z['height']<=h-bt+1,(game,w,h,z)
+     if close:page.locator(close).click()
+     else:page.evaluate("document.querySelector('#overlay').hidden=true")
+    print('PASS',game,'8 offline safe-area geometries and responsive menus',flush=True)
+
+   page.set_viewport_size({'width':390,'height':844})
    page.goto(url);page.locator('#discover h2').wait_for();assert rpc(page,'DETAILS')['value']==before
    page.get_by_role('button',name='Cài đặt',exact=True).click()
    # Verify ZIP bytes against the exact release kit while the original site is unavailable.
