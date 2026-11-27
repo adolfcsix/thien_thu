@@ -1,0 +1,48 @@
+from pathlib import Path
+import hashlib,json,subprocess,sys,zipfile
+root=Path(sys.argv[1]);site=root/'site'
+protected={p:hashlib.sha256(p.read_bytes()).hexdigest() for p in site.rglob('*') if p.is_file() and (p.relative_to(site).parts[0] in ('games','assets') or p.name=='manifest.webmanifest')}
+def patch(name,old,new):
+ p=root/name;s=p.read_text();assert s.count(old)==1,(name,old,s.count(old));p.write_text(s.replace(old,new))
+patch('site/hub.js',"const categories=", """const FAVORITES='xi:ui:favorites-v1';let favorites=[];
+try{const f=JSON.parse(localStorage.getItem(FAVORITES)||'[]');if(Array.isArray(f))favorites=[...new Set(f.filter(id=>released.some(g=>g.id===id)))].slice(0,released.length)}catch{}
+function favoriteButton(g){const on=favorites.includes(g.id),b=btn(on?'★':'☆','favorite-toggle',()=>{const next=on?favorites.filter(id=>id!==g.id):[...favorites,g.id];try{localStorage.setItem(FAVORITES,JSON.stringify(next));favorites=next;render();document.querySelectorAll('[data-favorite]').forEach(x=>{if(x.dataset.favorite===g.id&&x.getClientRects().length)x.setAttribute('aria-pressed',String(!on))})}catch{note('Không thể lưu game yêu thích.')}});b.dataset.favorite=g.id;b.setAttribute('aria-label','Yêu thích '+g.title);b.setAttribute('aria-pressed',String(on));return b}
+const categories=""")
+patch('site/hub.js',"['all','Tất cả',g=>true],['strategy'", "['all','Tất cả',g=>true],['favorite','Yêu thích',g=>favorites.includes(g.id)],['strategy'")
+patch('site/hub.js',"['all','Tất cả',g=>true],['ready'", "['all','Tất cả',g=>true],['favorite','Yêu thích',g=>favorites.includes(g.id)],['ready'")
+patch('site/hub.js',"d.append(actions);a.append(d);return a}","actions.append(favoriteButton(g));d.append(actions);a.append(d);return a}")
+patch('site/hub.js',"renderLobby(q);f.replaceChildren(...filtered.map(g=>card(g,true)))", "renderLobby(q);f.replaceChildren(...filtered.sort((a,b)=>Number(favorites.includes(b.id))-Number(favorites.includes(a.id))).map(g=>card(g,true)))")
+patch('site/index.html','<p class="small-note" id="surfaceStatus" role="status"></p></div>','''<p class="small-note" id="surfaceStatus" role="status"></p></div><section class="smart-settings" aria-labelledby="smartTitle"><h3 id="smartTitle">Phong cách trải nghiệm</h3><p class="small-note">Đổi mức hiệu ứng, không đổi ảnh nền hay dữ liệu game.</p><div id="performanceModes" class="smart-modes" role="group" aria-label="Mức hiệu ứng"></div><h3>Giao diện đã lưu</h3><p class="small-note">Lưu màu, bố cục và hiệu ứng vào hai vị trí. Ảnh nền giữ nguyên trên thiết bị.</p><div id="appearanceSlots"></div><p id="smartStatus" class="small-note" role="status"></p></section>''')
+p=site/'hub.js';p.write_text(p.read_text()+'''
+// Personal profiles store only bounded presentation settings; no game or wallpaper bytes.
+const PROFILE='xi:ui:profiles-v1';let slots={};
+function normalizeProfile(p){if(!p||!themeOptions.some(t=>t[0]===p.theme)||typeof p.compact!=='boolean'||typeof p.glass!=='boolean'||typeof p.motion!=='boolean')return null;return {theme:p.theme,compact:p.compact,glass:p.glass,motion:p.motion,surface:{glass:bounded(p.surface?.glass,22,13),wall:bounded(p.surface?.wall,24,18)}}}
+try{const p=JSON.parse(readPref('localStorage',PROFILE)||'{}');for(const id of ['1','2']){const s=normalizeProfile(p?.[id]);if(s)slots[id]=s}}catch{}
+function captureProfile(){return {...appearance,glass,motion:motion.checked,surface:{...surface}}}
+function smartNote(message){$('smartStatus').textContent=message}
+function applyProfile(p){p=normalizeProfile(p);if(!p)return;const entries=[[APPEAR,JSON.stringify({theme:p.theme,compact:p.compact})],[GLASS,p.glass?'1':'0'],[MOTION,p.motion?'1':'0'],[SURFACE_PREF,JSON.stringify(p.surface)]];const prior=[];try{for(const [k,v] of entries){prior.push([k,localStorage.getItem(k)]);localStorage.setItem(k,v)}}catch{for(const [k,v] of prior){try{v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch{}}smartNote('Không thể lưu cấu hình.');return}appearance={theme:p.theme,compact:p.compact};glass=p.glass;motion.checked=p.motion;surface=p.surface;applyAppearance();applyGlass();applyMotion();applySurface();smartNote('Đã áp dụng cấu hình.');}
+for(const [id,label,enabled,animated,opacity] of [['light','Nhẹ',false,false,0],['balanced','Cân bằng',true,false,8],['premium','Cao cấp',true,true,13]]){const b=btn(label,'secondary',()=>applyProfile({...captureProfile(),glass:enabled,motion:animated,surface:{...surface,glass:opacity}}));b.dataset.performance=id;$('performanceModes').append(b)}
+function renderSlots(){const area=$('appearanceSlots');area.replaceChildren();for(const id of ['1','2']){const row=e('div','smart-slot'),p=slots[id],title=e('div','smart-slot-copy');title.append(e('strong','','Giao diện '+id),e('small','',p?themeOptions.find(t=>t[0]===p.theme)[1]:'Chưa lưu'));const actions=e('div','actions');const save=btn(p?'Ghi đè':'Lưu','secondary',()=>saveSlot(id,captureProfile()));save.dataset.saveSlot=id;const load=btn('Áp dụng','secondary',()=>applyProfile(slots[id]),!p);load.dataset.loadSlot=id;const del=btn('Xóa','secondary',()=>saveSlot(id,null),!p);del.dataset.deleteSlot=id;actions.append(save,load,del);row.append(title,actions);area.append(row)}}
+function saveSlot(id,p){const next={...slots};if(p)next[id]=p;else delete next[id];try{localStorage.setItem(PROFILE,JSON.stringify(next));slots=next;renderSlots();smartNote(p?'Đã lưu giao diện '+id+'.':'Đã xóa cấu hình '+id+'.')}catch{smartNote('Không thể lưu cấu hình trên thiết bị.')}}
+renderSlots();
+''')
+p=site/'hub.css';p.write_text(p.read_text()+'''
+/* Smart Personalization: compact and accessible at narrow viewports. */
+.shell .favorite-toggle{flex:0 0 44px!important;min-width:44px;min-height:44px;padding:4px;font-size:22px;color:var(--gold);border-color:var(--line);line-height:1}.shell .favorite-toggle[aria-pressed=true]{background:var(--surface-raised);border-color:var(--gold)}
+.smart-settings{margin-block:16px;padding-block:16px;border-top:1px solid var(--line);min-width:0}.smart-settings h3{font-size:18px;margin:10px 0 5px}.smart-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-block:12px}.smart-slot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-block:12px;border-bottom:1px solid var(--line)}.smart-slot-copy{display:grid;gap:4px;flex:1 1 100px;min-width:0}.smart-slot-copy small{color:var(--muted)}.smart-slot .actions{flex:1 1 210px;min-width:0}.smart-slot .actions button{flex:1 1 auto;min-height:44px}@media(max-width:340px){.smart-modes{grid-template-columns:1fr}.smart-slot .actions{flex-basis:100%}}
+''')
+p=root/'integration/games.json';d=json.loads(p.read_text());d['hubVersion']='1.15.0';p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+subprocess.run(['node','tools/catalog.mjs','--write'],cwd=root,check=True)
+assert all(hashlib.sha256(p.read_bytes()).hexdigest()==h for p,h in protected.items())
+patch('tests/ui.py',' b.close()', ''' # Smart profiles and favorites in the same mocked worker session.
+ page=b.new_page(viewport={'width':320,'height':568},reduced_motion='reduce');errs=[];page.on('pageerror',lambda e:errs.append(str(e)));page.set_content(html.replace('<script>let ready=true;', '<script>const smartStore={};Object.defineProperty(window,"localStorage",{value:{getItem(k){return smartStore[k]??null},setItem(k,v){smartStore[k]=String(v)},removeItem(k){delete smartStore[k]}}});let ready=true;'))
+ page.locator('#featured [data-favorite=cubiq]').click();assert page.locator('#featured article h3').first.inner_text()=='CUBIQ';assert page.evaluate("JSON.parse(localStorage.getItem('xi:ui:favorites-v1'))")==['cubiq'];page.locator('[data-collection=favorite]').click();assert page.locator('#featured article').count()==1
+ page.get_by_role('button',name='Thư viện',exact=True).click();page.locator('[data-library-filter=favorite]').click();assert page.locator('#libraryGames article').count()==1
+ page.get_by_role('button',name='Cài đặt',exact=True).click();page.locator('#themeChoices [data-theme=jade]').click();page.locator('[data-performance=light]').click();assert page.locator('html').get_attribute('data-glass')=='off';assert page.locator('html').get_attribute('data-motion')=='off';page.locator('[data-save-slot="1"]').click();page.locator('#themeChoices [data-theme=pearl]').click();page.locator('[data-performance=premium]').click();page.locator('[data-save-slot="2"]').click();page.locator('[data-load-slot="1"]').click();assert page.locator('html').get_attribute('data-theme')=='jade';assert page.locator('html').get_attribute('data-motion')=='off';page.locator('[data-load-slot="2"]').click();assert page.locator('html').get_attribute('data-theme')=='pearl';assert page.locator('html').get_attribute('data-glass')=='on';assert page.evaluate("Object.keys(JSON.parse(localStorage.getItem('xi:ui:profiles-v1'))).length")==2
+ for w,h in [(280,650),(844,320),(390,844),(1024,768)]:
+  page.set_viewport_size({'width':w,'height':h});assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+ page.locator('[data-delete-slot="1"]').click();assert page.locator('[data-load-slot="1"]').is_disabled();page.get_by_role('button',name='Khám phá',exact=True).click();page.locator('#featured [data-favorite=cubiq]').click();assert page.locator('#featured article').count()==0;assert not errs,errs;page.close();print('PASS favorites, two profile slots, performance modes and rotation')
+ b.close()''')
+with zipfile.ZipFile(root.parent/'candidate.zip','w',zipfile.ZIP_DEFLATED) as z:
+ for f in sorted(root.rglob('*')):
+  if f.is_file() and ('site' in f.relative_to(root).parts or f.suffix not in ('.pyc','.png')):z.write(f,f.relative_to(root))
