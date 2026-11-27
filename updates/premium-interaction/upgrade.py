@@ -1,4 +1,4 @@
-"""Real F1.13 -> F1.17: preserve caches and preferences, no forced activation."""
+"""Real F1.13 -> F1.18: preserve caches and preferences, no forced activation."""
 import argparse, functools, http.server, shutil, tempfile, threading, zipfile, json
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -28,12 +28,12 @@ with tempfile.TemporaryDirectory() as tmp:
    names=page.evaluate("async()=> (await caches.keys()).filter(k=>k.includes(':game:')).sort()")
    shutil.rmtree(target);shutil.copytree(args.site,target);page.evaluate('async()=>{const r=await navigator.serviceWorker.getRegistration();await r.update()}');page.wait_for_function('async()=>!!(await navigator.serviceWorker.getRegistration()).waiting',timeout=60000)
    probe=ctx.new_page();probe.goto(f'http://127.0.0.1:{server.server_port}/probe.html');assert probe.evaluate('navigator.serviceWorker.controller===null');page.close()
-   probe.wait_for_function("""async url=>{const r=await navigator.serviceWorker.getRegistration(url),k=await caches.keys();return r?.active?.state==='activated'&&!r.waiting&&!r.installing&&k.includes('xi:'+url+':shell:1.17.0')&&!k.includes('xi:'+url+':shell:1.13.0')}""",arg=url,timeout=60000)
+   probe.wait_for_function("""async url=>{const r=await navigator.serviceWorker.getRegistration(url),k=await caches.keys();return r?.active?.state==='activated'&&!r.waiting&&!r.installing&&k.includes('xi:'+url+':shell:1.18.0')&&!k.includes('xi:'+url+':shell:1.13.0')}""",arg=url,timeout=60000)
    page=ctx.new_page();page.goto(url);probe.close();page.locator('#discover h2').wait_for();assert page.locator('html').get_attribute('data-theme')=='jade';assert rpc(page,'DETAILS')['value']==old
    assert page.evaluate('(keys)=>Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]))',list(saves))==saves
    assert page.evaluate("async()=> (await caches.keys()).filter(k=>k.includes(':game:')).sort()")==names
    ctx.set_offline(True);page.reload();page.locator('#discover h2').wait_for();page.get_by_role('button',name='Thư viện',exact=True).click();page.locator('[data-library-filter=ready]').click();page.wait_for_function("document.querySelectorAll('#libraryGames article').length===4");page.get_by_role('button',name='Hoạt động',exact=True).click();page.locator('#activityRecent').get_by_text('CUBIQ',exact=True).wait_for();page.get_by_role('button',name='Cài đặt',exact=True).click();assert page.locator('#themeChoices [data-theme=jade]').get_attribute('aria-pressed')=='true'
-   print('PASS F1.13 -> F1.17: all game caches, save keys, preferences, recent play and secondary tabs offline',flush=True)
+   print('PASS F1.13 -> F1.18: all game caches, save keys, preferences, recent play and secondary tabs offline',flush=True)
    # Verify toggle persisted during reload and restored when enabled, while offline.
    assert page.locator('html').get_attribute('data-glass')=='on'
    page.locator('#glassEnabled').uncheck()
