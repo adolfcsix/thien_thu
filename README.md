@@ -1,10 +1,10 @@
-# Xi Game Universe — Thiên Thủ
+# Xi Universe
 
 Nền tảng trò chơi web cài đặt được (PWA). Không cần tài khoản GitHub, không cần tải mã nguồn, không cần cài Node.js để chơi.
 
 **[Mở game tại đây](https://adolfcsix.github.io/thien_thu/)**
 
-> Bản công khai: Xi F1.6 (ba trò chơi). Bản F1.7 bổ sung FEATHER FURY 10.1 đang nghiệm thu.
+> Bản công khai: Xi F1.7 (bốn trò chơi). F1.8 — cá nhân hóa và tùy chỉnh game đang nghiệm thu.
 
 ## Danh mục trò chơi của bản nâng cấp
 
@@ -102,3 +102,15 @@ PWA phụ thuộc vào bộ nhớ trình duyệt. Hệ điều hành có thể t
 - [GitHub Actions](https://github.com/adolfcsix/thien_thu/actions) · [Báo lỗi](https://github.com/adolfcsix/thien_thu/issues)
 
 Đây là ứng dụng web PWA, chưa phải ứng dụng native IPA/APK/EXE. Hỗ trợ cài đặt tùy trình duyệt và hệ điều hành. Các nền tảng ngoài iPhone cần nghiệm thu trên thiết bị thật.
+
+
+## Cá nhân hóa sảnh Xi (F1.8)
+
+- Chọn Cài đặt → Không gian của bạn: sáu bảng màu, ảnh nền riêng, chế độ Khám phá thu gọn.
+- Ảnh JPEG/PNG/WebP tối đa 12 MB, được tối ưu và lưu trên thiết bị; không gửi lên máy chủ. Có thể gỡ ảnh hoặc khôi phục mặc định.
+- Tìm game tại Khám phá; nút Cập nhật tải bản module mới mà không xóa bản lưu. Nếu đang dùng bản offline cũ, cập nhật module để nhận chức năng mới.
+- Các tùy chỉnh riêng trong cài đặt trò chơi chỉ dành cho dữ liệu offline, không phải quyền bảo mật máy chủ. Mã mở khóa không phải biện pháp chống người đọc mã nguồn.
+- Nghiệm thu bắt buộc: cả Chromium và WebKit, nâng cấp từ V9.0 và F1.7, giữ tiến trình từng game.
+
+## F1.9 — Xi Universe
+Tên cài đặt mới: Xi Universe, giữ nguyên biểu tượng, định danh và phạm vi PWA. Các thiết bị đã cài có thể giữ nhãn cũ do iOS quản lý; không xóa ứng dụng hoặc dữ liệu để ép đổi tên. Sảnh mới có Nổi bật, Tiếp tục chơi, bộ lọc thể loại, tìm kiếm, Hoạt động, lưới thu gọn và sáu chủ đề F1.8. Bản này đang nghiệm thu; chỉ phát hành sau khi cả hai trình duyệt đạt.

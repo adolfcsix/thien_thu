@@ -1,7 +1,7 @@
 name: Xi Foundation — Validate and Deploy
 on:
   push:
-    branches: [main, 'feat/feather-fury-integration']
+    branches: [main, 'feat/xi-personalization']
     paths: ['Xi_Foundation_1_6_Release_Candidate.zip', '.github/workflows/pages.yml', 'tests/release-preflight.py', 'README.md', 'tests/activation-barrier.py', 'updates/**', 'tests/feather-upgrade.py']
   pull_request:
     branches: [main]
@@ -25,11 +25,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Build F1.7 from verified F1.6 and original game source
+      - name: Build accepted baseline, personalization and Xi Universe lobby
         run: |
           python3 updates/feather-fury/build.py candidate
           python3 candidate/tests/release-preflight.py Thien_Thu_V9_0_Web_Deploy.zip candidate.zip
-          sha256sum candidate.zip > candidate.sha256
+          cp candidate.zip baseline-f17.zip
+          python3 updates/private-options/apply.py candidate
+          cp updates/private-options/personalization-ui.py candidate/tests/personalization-ui.py
+          python3 updates/private-options/polish.py candidate
+          python3 updates/lobby/apply.py candidate
+          python3 candidate/tests/release-preflight.py Thien_Thu_V9_0_Web_Deploy.zip candidate.zip
+          sha256sum candidate.zip baseline-f17.zip > candidate.sha256
       - name: Catalog and unit acceptance
         working-directory: candidate
         run: npm test
@@ -45,12 +51,14 @@ jobs:
           python candidate/tests/ui.py
           python candidate/tests/imported-ui-mock.py
           python candidate/tests/imported-ui.py
+          python candidate/tests/personalization-ui.py
       - uses: actions/upload-artifact@v4
         with:
           name: xi-verified-candidate
           path: |
             candidate.zip
             candidate.sha256
+            baseline-f17.zip
           if-no-files-found: error
   browser:
     needs: validate
@@ -82,10 +90,10 @@ jobs:
         run: |
           set -o pipefail
           python -u candidate/tests/browser.py --engine ${{ matrix.engine }} --site candidate/site --baseline Thien_Thu_V9_0_Web_Deploy.zip 2>&1 | tee browser-acceptance.log
-      - name: F1.6 to F1.7 upgrade acceptance
+      - name: F1.7 to F1.9 upgrade, offline personalization and recent play acceptance
         run: |
           set -o pipefail
-          python -u tests/feather-upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline Xi_Foundation_1_6_Release_Candidate.zip 2>&1 | tee -a browser-acceptance.log
+          python -u updates/private-options/upgrade-ui.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f17.zip 2>&1 | tee -a browser-acceptance.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
