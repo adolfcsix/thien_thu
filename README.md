@@ -123,3 +123,6 @@ Nút có ánh sáng mềm và phản hồi nhấn; thanh điều hướng kính 
 
 ## F1.12 — Adaptive Layout
 Chống tràn khung bằng intrinsic sizing, xuống dòng cho tiêu đề và nút, lưới thích ứng, đo chiều cao thanh điều hướng và giữ safe area. Kiểm thử Chromium mô phỏng gồm 9 kích thước 280–1280 px × 4 tab × 2 bố cục × 2 trạng thái kính, có chữ dài và nút tăng cỡ chữ. Giữ nguyên các module game, artwork, manifest, save keys. Nghiệm thu nâng cấp trên Chromium và WebKit trước khi phát hành; chưa kiểm chứng iPhone thật.
+
+## F1.13 — Adaptive Devices & Surface Tuning
+Điều hướng dưới cho điện thoại dọc; thanh bên thích ứng khi xoay ngang từ 700px; bố cục máy tính bảng và lưới thư viện rộng cho desktop. Thanh chỉnh độ trong kính và mức hiện ảnh nền giới hạn để duy trì khả năng đọc, lưu riêng trên thiết bị. Giữ manifest, tất cả module và artwork nguyên byte. Kiểm thử 144 tổ hợp khung và 32 lần chuyển tab trong 8 lần resize liên tiếp; nghiệm thu thật Chromium/WebKit và iPhone vẫn là cổng phát hành. Không khóa hướng xoay của ứng dụng.
