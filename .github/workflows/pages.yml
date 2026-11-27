@@ -1,11 +1,11 @@
 name: Xi Foundation — Validate and Deploy
 on:
   push:
-    branches: [main, 'feat/multi-game-foundation']
-    paths: ['Xi_Foundation_1_6_Release_Candidate.zip', '.github/workflows/pages.yml', 'tests/release-preflight.py', 'README.md', 'tests/activation-barrier.py']
+    branches: [main, 'feat/feather-fury-integration']
+    paths: ['Xi_Foundation_1_6_Release_Candidate.zip', '.github/workflows/pages.yml', 'tests/release-preflight.py', 'README.md', 'tests/activation-barrier.py', 'updates/**', 'tests/feather-upgrade.py']
   pull_request:
     branches: [main]
-    paths: ['Xi_Foundation_1_6_Release_Candidate.zip', '.github/workflows/pages.yml', 'tests/release-preflight.py', 'README.md', 'tests/activation-barrier.py']
+    paths: ['Xi_Foundation_1_6_Release_Candidate.zip', '.github/workflows/pages.yml', 'tests/release-preflight.py', 'README.md', 'tests/activation-barrier.py', 'updates/**', 'tests/feather-upgrade.py']
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,12 +22,14 @@ jobs:
         run: |
           echo 'd6c589a0990f005b27ec51c958ba2ec4588e320ed628640eabc4cdfbb87b2155  Xi_Foundation_1_6_Release_Candidate.zip' | sha256sum -c -
           echo '29e827a34f4ac56c1d1341a69303367e497b78dc938ff0d9d9de5332c5132aa8  Thien_Thu_V9_0_Web_Deploy.zip' | sha256sum -c -
-          mkdir candidate
-          unzip -q Xi_Foundation_1_6_Release_Candidate.zip -d candidate
-          python3 candidate/tests/release-preflight.py Thien_Thu_V9_0_Web_Deploy.zip Xi_Foundation_1_6_Release_Candidate.zip
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Build F1.7 from verified F1.6 and original game source
+        run: |
+          python3 updates/feather-fury/build.py candidate
+          python3 candidate/tests/release-preflight.py Thien_Thu_V9_0_Web_Deploy.zip candidate.zip
+          sha256sum candidate.zip > candidate.sha256
       - name: Catalog and unit acceptance
         working-directory: candidate
         run: npm test
@@ -43,6 +45,13 @@ jobs:
           python candidate/tests/ui.py
           python candidate/tests/imported-ui-mock.py
           python candidate/tests/imported-ui.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xi-verified-candidate
+          path: |
+            candidate.zip
+            candidate.sha256
+          if-no-files-found: error
   browser:
     needs: validate
     runs-on: ubuntu-24.04
@@ -53,11 +62,13 @@ jobs:
         engine: [chromium, webkit]
     steps:
       - uses: actions/checkout@v4
-      - name: Verify and extract exact candidate
+      - uses: actions/download-artifact@v4
+        with:
+          name: xi-verified-candidate
+      - name: Verify and extract tested candidate
         run: |
-          echo 'd6c589a0990f005b27ec51c958ba2ec4588e320ed628640eabc4cdfbb87b2155  Xi_Foundation_1_6_Release_Candidate.zip' | sha256sum -c -
-          echo '29e827a34f4ac56c1d1341a69303367e497b78dc938ff0d9d9de5332c5132aa8  Thien_Thu_V9_0_Web_Deploy.zip' | sha256sum -c -
-          unzip -q Xi_Foundation_1_6_Release_Candidate.zip -d candidate
+          sha256sum -c candidate.sha256
+          unzip -q candidate.zip -d candidate
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -83,10 +94,13 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: xi-verified-candidate
       - name: Verify and extract tested candidate
         run: |
-          echo 'd6c589a0990f005b27ec51c958ba2ec4588e320ed628640eabc4cdfbb87b2155  Xi_Foundation_1_6_Release_Candidate.zip' | sha256sum -c -
-          unzip -q Xi_Foundation_1_6_Release_Candidate.zip -d candidate
+          sha256sum -c candidate.sha256
+          unzip -q candidate.zip -d candidate
       - uses: actions/upload-pages-artifact@v3
         with:
           path: candidate/site

@@ -4,7 +4,7 @@ Nền tảng trò chơi web cài đặt được (PWA). Không cần tài khoả
 
 **[Mở game tại đây](https://adolfcsix.github.io/thien_thu/)**
 
-> Trạng thái: bản công khai hiện tại là Thiên Thủ V9.0. Bản nâng cấp đa trò chơi F1.6 đang nghiệm thu tại [Pull Request #1](https://github.com/adolfcsix/thien_thu/pull/1). Các hướng dẫn thư viện đa trò chơi bên dưới áp dụng sau khi bản nâng cấp được triển khai.
+> Bản công khai: Xi F1.6 (ba trò chơi). Bản F1.7 bổ sung FEATHER FURY 10.1 đang nghiệm thu.
 
 ## Danh mục trò chơi của bản nâng cấp
 
@@ -13,6 +13,7 @@ Nền tảng trò chơi web cài đặt được (PWA). Không cần tài khoả
 | Thiên Thủ — Legacy of Kingdoms | Thủ thành 2D |
 | CUBIQ — Mobile Edition | Giải đố không gian 3D |
 | BLOCK NOVA | Xếp khối, giải đố |
+| FEATHER FURY — Sky Islands 10.1 | Kéo ná, vật lý 2D (F1.7) |
 
 ## Cài đặt và chơi
 
@@ -96,7 +97,8 @@ PWA phụ thuộc vào bộ nhớ trình duyệt. Hệ điều hành có thể t
 - `.github/workflows/pages.yml`: kiểm tra SHA-256, unit/UI và Service Worker trên Chromium/WebKit.
 - Không xóa baseline hoặc thay đổi file ZIP ứng viên nếu chưa cập nhật checksum và chạy lại CI.
 - Chỉ merge khi validate, browser (chromium) và browser (webkit) cùng đạt trên bản mới nhất.
-- Sau khi merge, chạy workflow Xi Foundation — Validate and Deploy bằng Run workflow trên nhánh main; chỉ triển khai khi mọi job bắt buộc đạt. Sau đó thử trên iPhone thật.
+- Khi merge vào main, workflow tự triển khai sau khi toàn bộ job bắt buộc đạt; kiểm tra trên thiết bị thật.
+- F1.7: `updates/feather-fury/` chứa HTML 10.1 nguyên gốc, cover SVG và script tạo module trên baseline F1.6 bất biến. CI tạo một gói duy nhất và dùng chính gói đó cho kiểm thử và phát hành.
 - [GitHub Actions](https://github.com/adolfcsix/thien_thu/actions) · [Báo lỗi](https://github.com/adolfcsix/thien_thu/issues)
 
 Đây là ứng dụng web PWA, chưa phải ứng dụng native IPA/APK/EXE. Hỗ trợ cài đặt tùy trình duyệt và hệ điều hành. Các nền tảng ngoài iPhone cần nghiệm thu trên thiết bị thật.
