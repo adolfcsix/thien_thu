@@ -36,6 +36,18 @@ with tempfile.TemporaryDirectory() as tmp:
    ctx.set_offline(True)
    for path,selector in [('legacy','#newBtn'),('cubiq','canvas'),('block-nova','#board'),('feather-fury','#canvas')]:
     page.goto(url+'games/'+path+'/index.html');page.locator(selector).wait_for()
+    assert page.locator('#xi-game-gesture-policy').count()==1
+    result=page.evaluate("""()=>{const t=document.createElement('button');document.body.append(t);const event=new Event('gesturestart',{cancelable:true,bubbles:true});const multi=new Event('touchmove',{cancelable:true,bubbles:true});Object.defineProperty(multi,'touches',{value:[{},{}]});const single=new Event('touchstart',{cancelable:true,bubbles:true});Object.defineProperty(single,'touches',{value:[{}]});const result=[!t.dispatchEvent(event),!t.dispatchEvent(multi),t.dispatchEvent(single),getComputedStyle(document.querySelector('canvas')).touchAction,document.querySelector('meta[name=viewport]').content];t.remove();return result}""")
+    assert result[:4]==[True,True,True,'none'] and 'maximum-scale=1' in result[4] and 'user-scalable=no' in result[4],(path,result)
+    assert abs(page.evaluate('visualViewport.scale')-1)<.01
+    page.evaluate("""()=>{const p=document.createElement('div');p.id='xiTestTouchProbe';p.style.cssText='position:fixed;inset:0;z-index:2147483647;background:transparent';document.body.append(p)}""")
+    page.touchscreen.tap(190,200);page.touchscreen.tap(190,200);page.wait_for_timeout(350);assert abs(page.evaluate('visualViewport.scale')-1)<.01,(path,'double tap')
+    if args.engine=='chromium':
+     session=ctx.new_cdp_session(page);session.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':150,'y':200,'id':0},{'x':240,'y':200,'id':1}]})
+     for n in range(1,7):session.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':150-n*10,'y':200,'id':0},{'x':240+n*10,'y':200,'id':1}]})
+     session.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(350);assert abs(page.evaluate('visualViewport.scale')-1)<.01,(path,'pinch');session.detach()
+    page.evaluate("document.querySelector('#xiTestTouchProbe').remove()")
+    print('PASS',path,'offline touch policy, single touch and double tap; Chromium actual pinch',flush=True)
    page.goto(url);page.locator('#discover h2').wait_for();assert rpc(page,'DETAILS')['value']==before
    page.get_by_role('button',name='Cài đặt',exact=True).click()
    # Verify ZIP bytes against the exact release kit while the original site is unavailable.

@@ -25,6 +25,8 @@ with tempfile.TemporaryDirectory() as tmp:
    old=rpc(page,'DETAILS')['value'];assert all(d['ready'] for d in old.values())
    # FEATHER FURY alone has an available update; installed bytes and every other detail must stay identical.
    assert old['feather-fury']['installedVersion']=='10.2' and old['feather-fury']['availableVersion']=='10.2';old['feather-fury']['availableVersion']='12.2';old['feather-fury']['updateAvailable']=True
+   for gid,version in [('legacy','9.2'),('cubiq','1.2'),('block-nova','1.2')]:
+    assert old[gid]['installedVersion']!=version;old[gid]['availableVersion']=version;old[gid]['updateAvailable']=True
    saves={'thien-thu-v8':'legacy-fixture','xi:game:cubiq:save':'cubiq-fixture','xi:ui:appearance-v1':json.dumps({'theme':'jade','compact':True}),'xi:ui:recent-v1':'["cubiq"]'}
    page.evaluate('(s)=>Object.entries(s).forEach(([k,v])=>localStorage.setItem(k,v))',saves)
    names=page.evaluate("async()=> (await caches.keys()).filter(k=>k.includes(':game:')).sort()")

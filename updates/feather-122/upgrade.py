@@ -25,8 +25,10 @@ with tempfile.TemporaryDirectory() as tmp:
    page.goto(url+'games/feather-fury/index.html');page.locator('#canvas').wait_for();page.locator('#menu').click();page.get_by_role('button',name='Về sảnh Xi',exact=True).click();page.get_by_role('button',name='Xác nhận về sảnh',exact=True).click();page.locator('#discover h2').wait_for()
    oldkey='xi:game:feather-fury:ff10-progress';newkey='xi:game:feather-fury:ff12.2-progress';fixture=json.loads(page.evaluate('(k)=>localStorage.getItem(k)',oldkey));fixture.update(coins=12345,feathers=567);fixture['stars'][0]=3;fixture['best'][0]=777;fixture['claimed'][0]=True;fixture['birds'][0]['lv']=5;oldsave=json.dumps(fixture);page.evaluate('([k,v])=>localStorage.setItem(k,v)',[oldkey,oldsave])
    old=rpc(page,'DETAILS')['value'];assert all(d['ready'] for d in old.values())
-   # FEATHER FURY alone has an available update; installed bytes and every other detail must stay identical.
+   # All four games have independently versioned touch-policy updates; existing cache and installed versions must stay intact.
    assert old['feather-fury']['installedVersion']=='10.2' and old['feather-fury']['availableVersion']=='10.2';old['feather-fury']['availableVersion']='12.2';old['feather-fury']['updateAvailable']=True
+   for gid,version in [('legacy','9.2'),('cubiq','1.2'),('block-nova','1.2')]:
+    assert old[gid]['installedVersion']!=version;old[gid]['availableVersion']=version;old[gid]['updateAvailable']=True
    saves={'thien-thu-v8':'legacy-fixture','xi:game:cubiq:save':'cubiq-fixture','xi:ui:appearance-v1':json.dumps({'theme':'jade','compact':True}),'xi:ui:recent-v1':'["cubiq"]'}
    page.evaluate('(s)=>Object.entries(s).forEach(([k,v])=>localStorage.setItem(k,v))',saves)
    names=page.evaluate("async()=> (await caches.keys()).filter(k=>k.includes(':game:')).sort()")
@@ -112,7 +114,7 @@ with tempfile.TemporaryDirectory() as tmp:
     page.set_viewport_size({'width':width,'height':height});box=d.bounding_box()
     assert box['x']>=0 and box['y']>=0 and box['x']+box['width']<=width+1 and box['y']+box['height']<=height+1,(width,height,box)
    page.keyboard.press('Escape');d.wait_for(state='hidden')
-   page.locator('[data-collection=updates]').click();assert page.locator('#featured article').count()==1;assert page.locator('#featured article h3').inner_text()=='FEATHER FURY'
+   page.locator('[data-collection=updates]').click();assert page.locator('#featured article').count()==4;assert set(page.locator('#featured article h3').all_inner_texts())=={'Thiên Thủ','CUBIQ','BLOCK NOVA','FEATHER FURY'}
    assert rpc(page,'DETAILS')['value']==old
    assert page.evaluate('(keys)=>Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]))',[k for k in saves if not k.startswith('xi:ui:')])=={k:v for k,v in saves.items() if not k.startswith('xi:ui:')}
    print('PASS offline detail, recent/update filters, rotation and ambient persistence',flush=True)
@@ -130,6 +132,11 @@ with tempfile.TemporaryDirectory() as tmp:
    page.get_by_role('button',name='Về sảnh Xi',exact=True).click();page.get_by_role('button',name='Xác nhận về sảnh',exact=True).click();page.locator('#discover h2').wait_for()
    assert page.evaluate('(k)=>localStorage.getItem(k)',oldkey)==preserved;updated=json.loads(page.evaluate('(k)=>localStorage.getItem(k)',newkey));assert updated['coins']==12345 and updated['feathers']==567 and updated['stars'][0]==3 and updated['best'][0]==777 and updated['birds'][0]['lv']==5 and 8 in updated['flock'] and len(updated['flock'])==8
    print('PASS FEATHER FURY 10.2 -> 12.2 failed offline update, independent cache, old save unchanged and offline roster',flush=True)
+   ctx.set_offline(False)
+   for gid,version in [('legacy','9.2'),('cubiq','1.2'),('block-nova','1.2')]:
+    assert rpc(page,'UPDATE',gid)['ok'];d=rpc(page,'DETAILS')['value'][gid];assert d['installedVersion']==version and d['ready'] and not d['updateAvailable'] and d['backupBytes']>0
+   assert page.evaluate('(keys)=>Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]))',['thien-thu-v8','xi:game:cubiq:save'])=={k:saves[k] for k in ['thien-thu-v8','xi:game:cubiq:save']}
+   print('PASS independent touch-policy updates preserve old saves and backup caches',flush=True)
    ctx.close()
    fresh=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,service_workers='block')
    test=fresh.new_page();test.route('**/hub.js',lambda route:route.abort());test.goto(url);assert test.locator('#shell').is_hidden();assert test.locator('#intro').is_visible();assert test.get_by_text('Bỏ qua',exact=True).count()==0

@@ -25,6 +25,8 @@ with tempfile.TemporaryDirectory() as tmp:
    old=rpc(page,'DETAILS')['value'];assert all(d['ready'] for d in old.values())
    # FEATHER FURY alone has an available update; installed bytes and every other detail must stay identical.
    assert old['feather-fury']['installedVersion']=='10.2' and old['feather-fury']['availableVersion']=='10.2';old['feather-fury']['availableVersion']='12.2';old['feather-fury']['updateAvailable']=True
+   for gid,version in [('legacy','9.2'),('cubiq','1.2'),('block-nova','1.2')]:
+    assert old[gid]['installedVersion']!=version;old[gid]['availableVersion']=version;old[gid]['updateAvailable']=True
    saves={'thien-thu-v8':'legacy-fixture','xi:game:cubiq:save':'cubiq-fixture','xi:ui:appearance-v1':json.dumps({'theme':'jade','compact':True}),'xi:ui:recent-v1':'["cubiq"]'}
    page.evaluate('(s)=>Object.entries(s).forEach(([k,v])=>localStorage.setItem(k,v))',saves)
    names=page.evaluate("async()=> (await caches.keys()).filter(k=>k.includes(':game:')).sort()")
@@ -110,7 +112,7 @@ with tempfile.TemporaryDirectory() as tmp:
     page.set_viewport_size({'width':width,'height':height});box=d.bounding_box()
     assert box['x']>=0 and box['y']>=0 and box['x']+box['width']<=width+1 and box['y']+box['height']<=height+1,(width,height,box)
    page.keyboard.press('Escape');d.wait_for(state='hidden')
-   page.locator('[data-collection=updates]').click();assert page.locator('#featured article').count()==1;assert page.locator('#featured article h3').inner_text()=='FEATHER FURY'
+   page.locator('[data-collection=updates]').click();assert page.locator('#featured article').count()==4;assert set(page.locator('#featured article h3').all_inner_texts())=={'Thiên Thủ','CUBIQ','BLOCK NOVA','FEATHER FURY'}
    assert rpc(page,'DETAILS')['value']==old
    assert page.evaluate('(keys)=>Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]))',[k for k in saves if not k.startswith('xi:ui:')])=={k:v for k,v in saves.items() if not k.startswith('xi:ui:')}
    print('PASS offline detail, recent/update filters, rotation and ambient persistence',flush=True)

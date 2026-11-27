@@ -55,7 +55,7 @@ jobs:
           cp candidate.zip baseline-f118.zip
           echo 'def37b93bf2a0938fa9b5c02a8c849e30184838719a6ec5541459cc760f03eed  updates/feather-122/original.html' | sha256sum -c -
           python3 updates/feather-122/apply.py candidate updates/feather-122/original.html
-          echo 'f44cceb2b451a9b882c61174341ce21afe1b54b983de542d7dd8c89a3c37ba33  candidate/site/games/feather-fury/index.html' | sha256sum -c -
+          echo '90a26f09e994d353a5b8d62df4b5f2bcf5145ccce4934035bbfa7f5fb4bd0a5e  candidate/site/games/feather-fury/index.html' | sha256sum -c -
           python3 candidate/tests/release-preflight.py Thien_Thu_V9_0_Web_Deploy.zip candidate.zip
           sha256sum candidate.zip baseline-f17.zip baseline-f19.zip baseline-f110.zip baseline-f111.zip baseline-f112.zip baseline-f113.zip baseline-f114.zip baseline-f115.zip baseline-f116.zip baseline-f117.zip baseline-f118.zip > candidate.sha256
       - name: Catalog and unit acceptance

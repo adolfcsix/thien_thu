@@ -25,7 +25,7 @@ with tempfile.TemporaryDirectory() as tmp:
    initial.wait_for_function("async url=>{const r=await navigator.serviceWorker.getRegistration(url);return r?.active?.state==='activated'&&!r.installing&&!r.waiting}",arg=url,timeout=60000)
    page.close();page=ctx.new_page();page.goto(url);initial.close()
    page.wait_for_function('navigator.serviceWorker.controller?.state === "activated"',timeout=60000);page.locator('#discover h2').wait_for()
-   ids=['legacy','cubiq','block-nova','feather-fury'];old=['9.0','1.0','1.0','10.1'];new=['9.1','1.1','1.1','12.2']
+   ids=['legacy','cubiq','block-nova','feather-fury'];old=['9.0','1.0','1.0','10.1'];new=['9.2','1.2','1.2','12.2']
    for g in ids:assert rpc(page,'INSTALL',g)['ok']
    saves={'thien-thu-v8':'legacy-sentinel','thien-thu-v8-recovery':'recovery-sentinel','xi:game:cubiq:save':'cubiq-sentinel','xi:game:block-nova:classic':'nova-sentinel','xi:game:feather-fury:ff10-progress':'feather-sentinel'}
    page.evaluate('(s)=>Object.entries(s).forEach(([k,v])=>localStorage.setItem(k,v))',saves)

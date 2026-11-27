@@ -144,3 +144,6 @@ Chỉ ổn định bản web/PWA; không triển khai đóng gói native trừ k
 
 ## F1.19 — FEATHER FURY 12.2 Sky Odyssey integration
 Nguồn gốc Feather-Fury-12.2.html từ người dùng, SHA256 cố định; chỉ adapter namespace, về sảnh và tùy chỉnh PIN. Giữ nguyên bốn khóa cũ; thêm riêng ff12.2-progress và ff12.1-progress. Game 10.2 vẫn chơi offline khi chưa cập nhật, cache cũ chỉ thay thế sau khi xác minh đủ. Ba module khác, artwork và manifest nguyên byte. Kiểm thử cục bộ 34/34 nền tảng, PIN, mock migration/roster và preflight đạt; điều hướng HTTP cục bộ bị môi trường chặn, CI thật là điều kiện merge. Không triển khai đóng gói native.
+
+### Game touch-policy revision
+Khóa zoom ở bốn trang game bằng viewport 1:1, touch-action cho canvas và menu, chặn gesture Safari và touch đa điểm; giữ cuộn menu một ngón và hướng xoay. Không áp dụng khóa zoom cho sảnh. Legacy 9.2, CUBIQ 1.2, BLOCK NOVA 1.2, FEATHER FURY 12.2; bản cũ vẫn chơi offline cho đến khi người dùng cập nhật từng game. Căn lại HUD, đội hình, canvas 16:10 của Sky Odyssey, safe area và landscape. Local 34/34 unit, 4/4 CDP pinch, 7/7 layout Feather. CI thêm double tap, gesture cancellation và cập nhật cache của cả bốn module. WebKit mô phỏng không thay thế kiểm tra iPhone vật lý.
