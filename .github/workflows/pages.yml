@@ -1,7 +1,7 @@
 name: Xi Foundation — Validate and Deploy
 on:
   push:
-    branches: [main, 'feat/xi-save-hardening']
+    branches: [main, 'feat/xi-game-input']
     paths: ['Xi_Foundation_1_6_Release_Candidate.zip', '.github/workflows/pages.yml', 'tests/release-preflight.py', 'README.md', 'tests/activation-barrier.py', 'updates/**', 'tests/feather-upgrade.py']
   pull_request:
     branches: [main]
@@ -52,8 +52,10 @@ jobs:
           python3 updates/offline-resilience/apply.py candidate
           cp candidate.zip baseline-f117.zip
           python3 updates/save-hardening/apply.py candidate
+          cp candidate.zip baseline-f118.zip
+          python3 updates/game-input/apply.py candidate updates/game-input/Feather-Fury-12.2.html
           python3 candidate/tests/release-preflight.py Thien_Thu_V9_0_Web_Deploy.zip candidate.zip
-          sha256sum candidate.zip baseline-f17.zip baseline-f19.zip baseline-f110.zip baseline-f111.zip baseline-f112.zip baseline-f113.zip baseline-f114.zip baseline-f115.zip baseline-f116.zip baseline-f117.zip > candidate.sha256
+          sha256sum candidate.zip baseline-f17.zip baseline-f19.zip baseline-f110.zip baseline-f111.zip baseline-f112.zip baseline-f113.zip baseline-f114.zip baseline-f115.zip baseline-f116.zip baseline-f117.zip baseline-f118.zip > candidate.sha256
       - name: Catalog and unit acceptance
         working-directory: candidate
         run: npm test
@@ -87,6 +89,7 @@ jobs:
             baseline-f115.zip
             baseline-f116.zip
             baseline-f117.zip
+            baseline-f118.zip
           if-no-files-found: error
   browser:
     needs: validate
@@ -118,46 +121,50 @@ jobs:
         run: |
           set -o pipefail
           python -u candidate/tests/browser.py --engine ${{ matrix.engine }} --site candidate/site --baseline Thien_Thu_V9_0_Web_Deploy.zip 2>&1 | tee browser-acceptance.log
-      - name: F1.7 to F1.18 upgrade, offline personalization and recent play acceptance
+      - name: F1.7 to F1.19 upgrade, offline personalization and recent play acceptance
         run: |
           set -o pipefail
           python -u updates/private-options/upgrade-ui.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f17.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.9 to F1.18 shell-only migration and startup acceptance
+      - name: F1.9 to F1.19 shell-only migration and startup acceptance
         run: |
           set -o pipefail
           python -u updates/shell-polish/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f19.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.10 to F1.18 glass preference and offline shell acceptance
+      - name: F1.10 to F1.19 glass preference and offline shell acceptance
         run: |
           set -o pipefail
           python -u updates/liquid-surface/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f110.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.11 to F1.18 adaptive layout and glass preference acceptance
+      - name: F1.11 to F1.19 adaptive layout and glass preference acceptance
         run: |
           set -o pipefail
           python -u updates/adaptive-layout/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f111.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.12 to F1.18 live rotation and surface tuning acceptance
+      - name: F1.12 to F1.19 live rotation and surface tuning acceptance
         run: |
           set -o pipefail
           python -u updates/adaptive-devices/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f112.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.13 to F1.18 offline premium dialog and motion acceptance
+      - name: F1.13 to F1.19 offline premium dialog and motion acceptance
         run: |
           set -o pipefail
           python -u updates/premium-interaction/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f113.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.14 to F1.18 offline favorites and profiles acceptance
+      - name: F1.14 to F1.19 offline favorites and profiles acceptance
         run: |
           set -o pipefail
           python -u updates/smart-personalization/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f114.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.15 to F1.18 offline detail, collections and atmosphere acceptance
+      - name: F1.15 to F1.19 offline detail, collections and atmosphere acceptance
         run: |
           set -o pipefail
           python -u updates/final-polish/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f115.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.16 to F1.18 cache-preserving migration
+      - name: F1.16 to F1.19 cache-preserving migration
         run: |
           set -o pipefail
           python -u updates/offline-resilience/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f116.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.17 to F1.18 cache-preserving migration
+      - name: F1.17 to F1.19 cache-preserving migration
         run: |
           set -o pipefail
           python -u updates/save-hardening/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f117.zip 2>&1 | tee -a browser-acceptance.log
+      - name: F1.18 to F1.19 transactional game upgrades, progress migration and gesture acceptance
+        run: |
+          set -o pipefail
+          python -u updates/game-input/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f118.zip 2>&1 | tee -a browser-acceptance.log
       - name: Deleted origin, offline kit and real save export/import
         run: |
           set -o pipefail
