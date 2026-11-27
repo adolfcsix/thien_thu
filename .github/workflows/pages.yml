@@ -1,0 +1,37 @@
+name: Deploy Thien Thu
+on:
+  push:
+    branches: [main]
+    paths: ['Thien_Thu_V9_0_Web_Deploy.zip']
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify approved V9.0 archive
+        run: echo '29e827a34f4ac56c1d1341a69303367e497b78dc938ff0d9d9de5332c5132aa8  Thien_Thu_V9_0_Web_Deploy.zip' | sha256sum -c -
+      - name: Unpack static game
+        run: |
+          mkdir -p site
+          unzip -q Thien_Thu_V9_0_Web_Deploy.zip -d site
+          test -f site/index.html
+          test -f site/sw.js
+          test -f site/manifest.webmanifest
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
