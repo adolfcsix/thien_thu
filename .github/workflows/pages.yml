@@ -82,6 +82,10 @@ jobs:
         run: |
           set -o pipefail
           python -u candidate/tests/browser.py --engine ${{ matrix.engine }} --site candidate/site --baseline Thien_Thu_V9_0_Web_Deploy.zip 2>&1 | tee browser-acceptance.log
+      - name: F1.6 to F1.7 upgrade acceptance
+        run: |
+          set -o pipefail
+          python -u tests/feather-upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline Xi_Foundation_1_6_Release_Candidate.zip 2>&1 | tee -a browser-acceptance.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
