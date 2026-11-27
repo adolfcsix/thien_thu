@@ -1,37 +1,55 @@
-name: Deploy Thien Thu
+name: Xi Foundation — Validate and Deploy
 on:
   push:
+    branches: [main, 'feat/multi-game-foundation']
+    paths: ['Xi_Foundation_1_0_Web_Deploy.zip']
+  pull_request:
     branches: [main]
-    paths: ['Thien_Thu_V9_0_Web_Deploy.zip']
+    paths: ['Xi_Foundation_1_0_Web_Deploy.zip', '.github/workflows/pages.yml', 'tests/foundation-browser.py']
   workflow_dispatch:
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
-  group: pages
+  group: xi-pages-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Verify approved V9.0 archive
-        run: echo '29e827a34f4ac56c1d1341a69303367e497b78dc938ff0d9d9de5332c5132aa8  Thien_Thu_V9_0_Web_Deploy.zip' | sha256sum -c -
-      - name: Unpack static game
+      - name: Verify release archives
         run: |
+          echo '29f6545266b998a33329f139404e5558ae66c6ff01e46d243e241cf55266cb5f  Xi_Foundation_1_0_Web_Deploy.zip' | sha256sum -c -
+          echo '29e827a34f4ac56c1d1341a69303367e497b78dc938ff0d9d9de5332c5132aa8  Thien_Thu_V9_0_Web_Deploy.zip' | sha256sum -c -
           mkdir -p site
-          unzip -q Thien_Thu_V9_0_Web_Deploy.zip -d site
+          unzip -q Xi_Foundation_1_0_Web_Deploy.zip -d site
           test -f site/index.html
           test -f site/sw.js
-          test -f site/manifest.webmanifest
-      - uses: actions/configure-pages@v5
+          test -f site/games/legacy/index.html
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Acceptance — same-origin migration and offline
+        run: python tests/foundation-browser.py
       - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:
           path: site
+  deploy:
+    needs: validate
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
