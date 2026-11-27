@@ -1,0 +1,27 @@
+"""F1.8 personalization and CUBIQ assist extension. Run after apply.py."""
+from pathlib import Path
+import sys,json,subprocess,zipfile
+out=Path(sys.argv[1]).resolve(); root=Path(__file__).resolve().parent
+
+def edit(path,old,new):
+ p=out/path;s=p.read_text();assert s.count(old)==1,(path,old,s.count(old));p.write_text(s.replace(old,new))
+# Correct the test fixture: compare mutated bytes with the CURRENT release baseline.
+edit('tests/integration.test.js',"writeFileSync(join(dir,input.games[0].entry),'changed');assert.throws(()=>compile(input,dir,baseline),/version bump/)","const current=compile(meta,actualSite.pathname,baseline).games.filter(g=>g.status==='released');writeFileSync(join(dir,input.games[0].entry),'changed');assert.throws(()=>compile(input,dir,current),/version bump/)")
+# The additional flag is backward compatible and independent of ordinary Relaxed mode.
+c='site/games/cubiq/index.html'
+for old,new in [('free=false,sound=true','free=false,assist=false,sound=true'),('free=!!saved.free;sound','free=!!saved.free;assist=saved.assist===true;sound'),('record,free,sound,history,life,result','record,free,assist,sound,history,life,result'),("$('hearts').innerHTML=free?", "$('hearts').innerHTML=(free||assist)?"),('if(!free)life--;','if(!free&&!assist)life--;'),('if(life<=0&&!free)finishAt','if(life<=0&&!free&&!assist)finishAt')]:edit(c,old,new)
+old="xiPrivateOptions([{id:'unlocked',label:'Mở khóa đến màn',value:unlocked,min:unlocked,max:10000}],v=>{const old=unlocked;unlocked=v.unlocked;save();try{if(JSON.parse(localStorage.getItem(SAVE)).unlocked!==unlocked)throw Error()}catch{unlocked=old;save();return 'Không thể lưu màn đã mở.'}return true},'light')"
+new="xiPrivateOptions([{id:'unlocked',label:'Mở khóa đến màn',value:unlocked,min:unlocked,max:10000},{id:'jump',label:'Chuyển đến màn (bắt đầu lại nếu đổi màn)',value:level,min:1,max:10000},{id:'assist',label:'Vô hạn mạng (0: tắt, 1: bật)',value:assist?1:0,min:0,max:1}],v=>{const next=Math.max(v.unlocked,v.jump),infinite=v.assist===1,jump=v.jump!==level;try{localStorage.setItem(SAVE,JSON.stringify({level:v.jump,unlocked:next,record,free,assist:infinite,sound,history:jump?[]:history,life:jump?3:life,result:jump?null:result}))}catch{return 'Không thể lưu thay đổi.'}unlocked=next;assist=infinite;if(jump)load(v.jump);else{refresh();menu()}return true},'light')"
+edit(c,old,new)
+# Preserve all existing theme-independent controls and game cards.
+edit('site/index.html','<div id="featured"></div>','<div class="browse-tools"><label class="search-field"><span aria-hidden="true">⌕</span><input id="gameSearch" type="search" placeholder="Tìm trò chơi" aria-label="Tìm trò chơi" autocomplete="off"></label><span id="searchResult" role="status"></span></div><div id="featured"></div><p id="noGames" hidden>Không tìm thấy trò chơi phù hợp.</p>')
+edit('site/index.html','<article class="panel"><h3>Trải nghiệm</h3>','<article class="panel appearance"><div class="eyebrow">CÁ NHÂN HÓA</div><h3>Không gian của bạn</h3><p>Chọn phong cách cho sảnh Xi. Không thay đổi giao diện bên trong game.</p><div id="themeChoices" class="theme-choices" role="group" aria-label="Mẫu giao diện"></div><div class="appearance-rule"></div><label class="wallpaper-label" for="wallpaperFile">Ảnh nền của bạn</label><p class="small-note">JPEG, PNG hoặc WebP · tối đa 12 MB. Ảnh chỉ lưu trên thiết bị này.</p><div id="wallpaperPreview" class="wallpaper-preview"><span>Chưa chọn ảnh nền</span></div><div class="file-pick"><label class="file-button" for="wallpaperFile">Chọn ảnh từ thiết bị</label><input id="wallpaperFile" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Chọn ảnh từ thiết bị"></div><div class="actions"><button id="wallpaperRemove" class="secondary">Gỡ ảnh nền</button><button id="appearanceReset" class="secondary">Mặc định</button></div><label class="switch-row"><span><strong>Khám phá thu gọn</strong><small>Hiển thị nhiều game hơn trên cùng màn hình.</small></span><input id="compactCards" type="checkbox"></label><p id="appearanceStatus" role="status" aria-live="polite"></p></article><article class="panel"><h3>Trải nghiệm</h3>')
+edit('site/hub.js',"f.replaceChildren(...released.map(g=>card(g,true)));", "const q=($('gameSearch')?.value||'').trim().toLocaleLowerCase('vi');const filtered=released.filter(g=>[g.title,g.subtitle,g.genre].some(s=>s.toLocaleLowerCase('vi').includes(q)));f.replaceChildren(...filtered.map(g=>card(g,true)));$('noGames').hidden=filtered.length!==0;$('searchResult').textContent=q?`${filtered.length}/${released.length} trò chơi`:'';")
+# Keep old installed versions playable; expose explicit update from Discover too.
+edit('site/hub.js',"else actions.append(btn('Quản lý','secondary',()=>select('library')));", "else{if(info?.updateAvailable)actions.append(btn('Cập nhật','secondary',()=>task('UPDATE',g),busy||!navigator.onLine||!workerReady));actions.append(btn('Quản lý','secondary',()=>select('library')));}")
+with (out/'site/hub.css').open('a') as f:f.write('\n'+(root/'appearance.css').read_text())
+with (out/'site/hub.js').open('a') as f:f.write('\n'+(root/'appearance.js').read_text())
+subprocess.run(['node','tools/catalog.mjs','--write'],cwd=out,check=True)
+with zipfile.ZipFile(out.parent/'candidate.zip','w',zipfile.ZIP_DEFLATED) as z:
+ for p in sorted(out.rglob('*')):
+  if p.is_file() and ('site' in p.relative_to(out).parts or p.suffix not in ('.pyc','.png')):z.write(p,p.relative_to(out))
