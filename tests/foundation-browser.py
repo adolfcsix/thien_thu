@@ -59,6 +59,7 @@ with tempfile.TemporaryDirectory() as d:
         page.get_by_text('Đã gỡ tài nguyên. Tiến trình vẫn còn.').wait_for()
         assert page.get_by_role('button',name='Chơi ngay').last.is_disabled()
         assert json.loads(page.evaluate("localStorage.getItem('thien-thu-v8')"))['game']['wave']==1
+        assert not page.evaluate("(async()=> (await caches.keys()).some(k=>k.includes(':game:legacy:')))()")
         ctx.set_offline(False)
         page.get_by_role('button',name='Tải offline').click()
         page.get_by_text('Đã lưu đủ tài nguyên offline.').wait_for()
