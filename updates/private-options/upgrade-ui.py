@@ -18,7 +18,7 @@ with tempfile.TemporaryDirectory() as tmp:
  server=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(Handler,directory=str(root)));threading.Thread(target=server.serve_forever,daemon=True).start();url=f'http://127.0.0.1:{server.server_port}/thien_thu/'
  try:
   with sync_playwright() as pw:
-   b=getattr(pw,args.engine).launch();ctx=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,reduced_motion='reduce');ctx.set_default_timeout(30000);page=ctx.new_page();page.goto(url);page.wait_for_function('navigator.serviceWorker.controller?.state === "activated"',timeout=60000);page.locator('#discover h2').wait_for()
+   b=getattr(pw,args.engine).launch();ctx=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,reduced_motion='reduce');ctx.set_default_timeout(30000);page=ctx.new_page();page.goto(url);page.evaluate('async()=>{await navigator.serviceWorker.ready}');page.reload();page.wait_for_function('navigator.serviceWorker.controller?.state === "activated"',timeout=60000);page.locator('#discover h2').wait_for()
    ids=['legacy','cubiq','block-nova','feather-fury'];old=['9.0','1.0','1.0','10.1'];new=['9.1','1.1','1.1','10.2']
    for g in ids:assert rpc(page,'INSTALL',g)['ok']
    saves={'thien-thu-v8':'legacy-sentinel','thien-thu-v8-recovery':'recovery-sentinel','xi:game:cubiq:save':'cubiq-sentinel','xi:game:block-nova:classic':'nova-sentinel','xi:game:feather-fury:ff10-progress':'feather-sentinel'}
