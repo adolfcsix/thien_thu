@@ -141,3 +141,6 @@ Mở lại phạm vi nền tảng theo phản hồi người dùng. Quản lý t
 
 ## F1.18 — Save Hardening
 Chỉ ổn định bản web/PWA; không triển khai đóng gói native trừ khi có yêu cầu mới. Nhật ký hoàn tác ghi trước khi nhập, xác minh ghi từng khóa, phục hồi lần nhập dang dở khi mở lại sảnh; không ghi đè dữ liệu nếu không lưu được nhật ký. Nếu chưa phục hồi được, không mở game qua sảnh hoặc nhập thêm; giữ nhật ký để thử lại. Đóng các tab game khác và xuất sao lưu trước khi nhập; không bảo đảm an toàn khi hệ điều hành xóa toàn bộ storage hoặc khi nhiều tab cùng ghi. Kiểm thử cục bộ 34/34 unit, 20 UI, 144 layout và 32 resize/tab, preflight đạt; CI giữ các gate cũ và thêm phục hồi journal khi mở lại offline. Không thay đổi game, manifest, artwork, khóa lưu.
+
+## F1.19 — FEATHER FURY 12.2 Sky Odyssey integration
+Nguồn gốc Feather-Fury-12.2.html từ người dùng, SHA256 cố định; chỉ adapter namespace, về sảnh và tùy chỉnh PIN. Giữ nguyên bốn khóa cũ; thêm riêng ff12.2-progress và ff12.1-progress. Game 10.2 vẫn chơi offline khi chưa cập nhật, cache cũ chỉ thay thế sau khi xác minh đủ. Ba module khác, artwork và manifest nguyên byte. Kiểm thử cục bộ 34/34 nền tảng, PIN, mock migration/roster và preflight đạt; điều hướng HTTP cục bộ bị môi trường chặn, CI thật là điều kiện merge. Không triển khai đóng gói native.
