@@ -132,3 +132,6 @@ Hộp thoại gỡ tài nguyên dùng native dialog top layer với bề mặt X
 
 ## F1.15 — Smart Personalization
 Ghim game bằng nút sao, lọc Yêu thích tại Khám phá và Thư viện. Ba mức hiệu ứng Nhẹ/Cân bằng/Cao cấp; hai vị trí lưu và áp dụng màu, bố cục, kính và chuyển động. Không nhân bản ảnh nền, không thay đổi dữ liệu game. Local 33 unit, 15 UI mock, 144 layout stress và 32 resize/tab checks. CI thêm kiểm tra lưu offline và bảo toàn cache. Chưa nghiệm thu trên iPhone thật.
+
+## F1.16 — Final Experience / đóng phạm vi nền tảng
+Ánh sáng nền tĩnh theo theme (không animation liên tục), công tắc riêng, tự giảm cùng kính/chuyển động. Hộp thoại Chi tiết game có artwork, mô tả, phiên bản, trạng thái offline và điều hướng. Bộ lọc Gần đây/Cập nhật, hàng nút tránh tràn màn 280px. Bảo toàn 4 game, manifest, artwork và các khóa lưu. Local 33 unit, 16 UI mock, 144 layout stress và 32 resize/tab checks; kiểm tra PIN, upload ảnh, save isolation và preflight đạt. CI bắt buộc nghiệm thu Chromium/WebKit, bao gồm F1.15 -> F1.16. Đây là mốc khóa tính năng; chỉ sửa lỗi nghiệm thu, không mở rộng phạm vi; kiểm tra thiết bị thật sau triển khai. Không tuyên bố bản công khai F1.16 trước khi deploy thành công.

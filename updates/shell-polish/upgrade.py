@@ -1,4 +1,4 @@
-"""Real F1.9 -> F1.15: preserve caches and preferences, no forced activation."""
+"""Real F1.9 -> F1.16: preserve caches and preferences, no forced activation."""
 import argparse, functools, http.server, shutil, tempfile, threading, zipfile, json
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -28,12 +28,12 @@ with tempfile.TemporaryDirectory() as tmp:
    names=page.evaluate("async()=> (await caches.keys()).filter(k=>k.includes(':game:')).sort()")
    shutil.rmtree(target);shutil.copytree(args.site,target);page.evaluate('async()=>{const r=await navigator.serviceWorker.getRegistration();await r.update()}');page.wait_for_function('async()=>!!(await navigator.serviceWorker.getRegistration()).waiting',timeout=60000)
    probe=ctx.new_page();probe.goto(f'http://127.0.0.1:{server.server_port}/probe.html');assert probe.evaluate('navigator.serviceWorker.controller===null');page.close()
-   probe.wait_for_function("""async url=>{const r=await navigator.serviceWorker.getRegistration(url),k=await caches.keys();return r?.active?.state==='activated'&&!r.waiting&&!r.installing&&k.includes('xi:'+url+':shell:1.15.0')&&!k.includes('xi:'+url+':shell:1.9.0')}""",arg=url,timeout=60000)
+   probe.wait_for_function("""async url=>{const r=await navigator.serviceWorker.getRegistration(url),k=await caches.keys();return r?.active?.state==='activated'&&!r.waiting&&!r.installing&&k.includes('xi:'+url+':shell:1.16.0')&&!k.includes('xi:'+url+':shell:1.9.0')}""",arg=url,timeout=60000)
    page=ctx.new_page();page.goto(url);probe.close();page.locator('#discover h2').wait_for();assert page.locator('html').get_attribute('data-theme')=='jade';assert rpc(page,'DETAILS')['value']==old
    assert page.evaluate('(keys)=>Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]))',list(saves))==saves
    assert page.evaluate("async()=> (await caches.keys()).filter(k=>k.includes(':game:')).sort()")==names
    ctx.set_offline(True);page.reload();page.locator('#discover h2').wait_for();page.get_by_role('button',name='Thư viện',exact=True).click();page.locator('[data-library-filter=ready]').click();page.wait_for_function("document.querySelectorAll('#libraryGames article').length===4");page.get_by_role('button',name='Hoạt động',exact=True).click();page.locator('#activityRecent').get_by_text('CUBIQ',exact=True).wait_for();page.get_by_role('button',name='Cài đặt',exact=True).click();assert page.locator('#themeChoices [data-theme=jade]').get_attribute('aria-pressed')=='true'
-   print('PASS F1.9 -> F1.15: all game caches, save keys, preferences, recent play and secondary tabs offline',flush=True)
+   print('PASS F1.9 -> F1.16: all game caches, save keys, preferences, recent play and secondary tabs offline',flush=True)
    ctx.close()
    fresh=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,service_workers='block')
    test=fresh.new_page();test.route('**/hub.js',lambda route:route.abort());test.goto(url);assert test.locator('#shell').is_hidden();assert test.locator('#intro').is_visible();assert test.get_by_text('Bỏ qua',exact=True).count()==0
