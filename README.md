@@ -120,3 +120,6 @@ Intro che sảnh từ HTML đầu tiên; chạm vào màn hình hoặc đợi t�
 
 ## F1.11 — Xi Liquid Surface
 Nút có ánh sáng mềm và phản hồi nhấn; thanh điều hướng kính nổi và chỉ báo trượt theo tab; công tắc gạt; hiệu ứng đồng bộ sáu chủ đề. Có tùy chọn Hiệu ứng kính trong Cài đặt, lưu cục bộ. Chỉ một lớp backdrop-filter ở thanh điều hướng, có nền dự phòng và tôn trọng reduced-motion. Không thay đổi định danh PWA, dữ liệu lưu hay module game. Bộ mô phỏng Cache API chụp snapshot byte của Response để tránh lỗi clone stream trong Node; không bỏ assertion. Chưa nghiệm thu thiết bị thật.
+
+## F1.12 — Adaptive Layout
+Chống tràn khung bằng intrinsic sizing, xuống dòng cho tiêu đề và nút, lưới thích ứng, đo chiều cao thanh điều hướng và giữ safe area. Kiểm thử Chromium mô phỏng gồm 9 kích thước 280–1280 px × 4 tab × 2 bố cục × 2 trạng thái kính, có chữ dài và nút tăng cỡ chữ. Giữ nguyên các module game, artwork, manifest, save keys. Nghiệm thu nâng cấp trên Chromium và WebKit trước khi phát hành; chưa kiểm chứng iPhone thật.
