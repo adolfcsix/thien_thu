@@ -129,3 +129,6 @@ Chống tràn khung bằng intrinsic sizing, xuống dòng cho tiêu đề và n
 
 ## F1.14 — Premium Interaction
 Hộp thoại gỡ tài nguyên dùng native dialog top layer với bề mặt Xi, nút hủy mặc định, Escape, giới hạn chiều cao theo viewport và bảo toàn save. Fallback confirm chỉ dùng nếu trình duyệt không hỗ trợ dialog. Công tắc chuyển động độc lập với hiệu ứng kính và giảm chuyển động hệ điều hành. Giữ nguyên module game, ảnh bìa, manifest và các khóa lưu. Kiểm thử UI mô phỏng 14/14, layout 144/144, resize/tab 32/32; CI nghiệm thu thật hai trình duyệt và bảo toàn cache/save. Chưa xác nhận thiết bị iPhone vật lý.
+
+## F1.15 — Smart Personalization
+Ghim game bằng nút sao, lọc Yêu thích tại Khám phá và Thư viện. Ba mức hiệu ứng Nhẹ/Cân bằng/Cao cấp; hai vị trí lưu và áp dụng màu, bố cục, kính và chuyển động. Không nhân bản ảnh nền, không thay đổi dữ liệu game. Local 33 unit, 15 UI mock, 144 layout stress và 32 resize/tab checks. CI thêm kiểm tra lưu offline và bảo toàn cache. Chưa nghiệm thu trên iPhone thật.
