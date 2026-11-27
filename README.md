@@ -114,3 +114,6 @@ PWA phụ thuộc vào bộ nhớ trình duyệt. Hệ điều hành có thể t
 
 ## F1.9 — Xi Universe
 Tên cài đặt mới: Xi Universe, giữ nguyên biểu tượng, định danh và phạm vi PWA. Các thiết bị đã cài có thể giữ nhãn cũ do iOS quản lý; không xóa ứng dụng hoặc dữ liệu để ép đổi tên. Sảnh mới có Nổi bật, Tiếp tục chơi, bộ lọc thể loại, tìm kiếm, Hoạt động, lưới thu gọn và sáu chủ đề F1.8. Bản này đang nghiệm thu; chỉ phát hành sau khi cả hai trình duyệt đạt.
+
+## F1.10 — Startup & secondary tabs
+Intro che sảnh từ HTML đầu tiên; chạm vào màn hình hoặc đợi tự chuyển, không còn nút Bỏ qua. Thư viện có bộ lọc trạng thái, sắp xếp theo gần đây/tên/dung lượng. Hoạt động tách lịch sử mở game và cập nhật. Cài đặt nhóm theo chức năng, giữ nguyên cá nhân hóa F1.9. Không đổi định danh PWA hay phiên bản từng game. Bản ứng viên chỉ phát hành sau khi nghiệm thu Chromium và WebKit.
