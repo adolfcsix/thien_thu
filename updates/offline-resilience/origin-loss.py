@@ -50,5 +50,13 @@ with tempfile.TemporaryDirectory() as tmp:
    file=root/'save.json';d.value.save_as(file);payload=json.loads(file.read_text());assert payload['format']=='xi-game-saves-v1';assert payload['saves']['xi:game:cubiq:save']==page.evaluate("localStorage.getItem('xi:game:cubiq:save')")
    page.evaluate("localStorage.removeItem('xi:game:cubiq:save')");page.on('dialog',lambda d:d.accept());page.locator('#importSaves').set_input_files(str(file));page.get_by_text('Đã nhập bản lưu. Mở lại trò chơi để sử dụng.',exact=True).wait_for();assert page.evaluate("localStorage.getItem('xi:game:cubiq:save')")==payload['saves']['xi:game:cubiq:save']
    assert rpc(page,'DETAILS')['value']==before
+   # Simulate a process termination after a partial write, then reopen offline.
+   page.evaluate("""()=>{const a='xi:game:cubiq:save',b='xi:game:block-nova:best';localStorage.setItem('xi:recovery:import-v1',JSON.stringify({format:'xi-import-rollback-v1',previous:[[a,localStorage.getItem(a)],[b,localStorage.getItem(b)]]}));localStorage.setItem(a,'{"level":999}');localStorage.setItem(b,'12345')}""")
+   page.close();page=ctx.new_page();page.goto(url);page.locator('#discover h2').wait_for()
+   assert page.evaluate("localStorage.getItem('xi:recovery:import-v1')") is None
+   assert page.evaluate("localStorage.getItem('xi:game:cubiq:save')")==payload['saves']['xi:game:cubiq:save']
+   assert page.evaluate("localStorage.getItem('xi:game:block-nova:best')")==payload['saves'].get('xi:game:block-nova:best')
+   assert rpc(page,'DETAILS')['value']==before
+   print('PASS interrupted import journal recovery on offline reopen',flush=True)
    print('PASS origin HTTP 404, reopen, airplane-mode launches, cached ZIP byte integrity, correct-game navigation and save export/import',flush=True);b.close()
  finally:server.shutdown();server.server_close()
