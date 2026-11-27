@@ -117,3 +117,6 @@ Tên cài đặt mới: Xi Universe, giữ nguyên biểu tượng, định danh
 
 ## F1.10 — Startup & secondary tabs
 Intro che sảnh từ HTML đầu tiên; chạm vào màn hình hoặc đợi tự chuyển, không còn nút Bỏ qua. Thư viện có bộ lọc trạng thái, sắp xếp theo gần đây/tên/dung lượng. Hoạt động tách lịch sử mở game và cập nhật. Cài đặt nhóm theo chức năng, giữ nguyên cá nhân hóa F1.9. Không đổi định danh PWA hay phiên bản từng game. Bản ứng viên chỉ phát hành sau khi nghiệm thu Chromium và WebKit.
+
+## F1.11 — Xi Liquid Surface
+Nút có ánh sáng mềm và phản hồi nhấn; thanh điều hướng kính nổi và chỉ báo trượt theo tab; công tắc gạt; hiệu ứng đồng bộ sáu chủ đề. Có tùy chọn Hiệu ứng kính trong Cài đặt, lưu cục bộ. Chỉ một lớp backdrop-filter ở thanh điều hướng, có nền dự phòng và tôn trọng reduced-motion. Không thay đổi định danh PWA, dữ liệu lưu hay module game. Bộ mô phỏng Cache API chụp snapshot byte của Response để tránh lỗi clone stream trong Node; không bỏ assertion. Chưa nghiệm thu thiết bị thật.

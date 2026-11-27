@@ -1,4 +1,4 @@
-"""Real-browser F1.7 -> F1.10 migration, independent module updates and settings persistence."""
+"""Real-browser F1.7 -> F1.11 migration, independent module updates and settings persistence."""
 import argparse, functools, http.server, shutil, tempfile, threading, zipfile, json
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -32,7 +32,7 @@ with tempfile.TemporaryDirectory() as tmp:
    def check_saves():assert page.evaluate('(keys)=>Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]))',list(saves))==saves
    shutil.rmtree(target);shutil.copytree(args.site,target);page.evaluate('async()=>{const r=await navigator.serviceWorker.getRegistration();await r.update()}');page.wait_for_function('async()=>!!(await navigator.serviceWorker.getRegistration()).waiting',timeout=60000)
    probe=ctx.new_page();probe.goto(f'http://127.0.0.1:{server.server_port}/probe.html');assert probe.evaluate('navigator.serviceWorker.controller===null');page.close()
-   probe.wait_for_function("""async url=>{const r=await navigator.serviceWorker.getRegistration(url),k=await caches.keys();return r?.active?.state==='activated'&&!r.waiting&&!r.installing&&k.includes('xi:'+url+':shell:1.10.0')&&!k.includes('xi:'+url+':shell:1.7.0')}""",arg=url,timeout=60000)
+   probe.wait_for_function("""async url=>{const r=await navigator.serviceWorker.getRegistration(url),k=await caches.keys();return r?.active?.state==='activated'&&!r.waiting&&!r.installing&&k.includes('xi:'+url+':shell:1.11.0')&&!k.includes('xi:'+url+':shell:1.7.0')}""",arg=url,timeout=60000)
    page=ctx.new_page();page.goto(url);probe.close();page.wait_for_function('navigator.serviceWorker.controller?.state==="activated"');page.locator('#discover h2').wait_for();check_saves();d=rpc(page,'DETAILS')['value']
    assert all(d[g]['ready'] and d[g]['installedVersion']==o and d[g]['availableVersion']==n and d[g]['updateAvailable'] for g,o,n in zip(ids,old,new)),d
    # Failure while offline must not discard previous playable resources.
@@ -44,5 +44,5 @@ with tempfile.TemporaryDirectory() as tmp:
    page.get_by_role('button',name='Cài đặt',exact=True).click();page.locator('#themeChoices [data-theme=jade]').click();page.locator('#compactCards').check();page.reload();page.locator('html[data-theme=jade]').wait_for(state='attached');assert page.locator('html').get_attribute('data-theme')=='jade';assert page.locator('html').get_attribute('data-compact')=='true'
    page.get_by_role('button',name='Khám phá',exact=True).click();ctx.set_offline(True);page.locator('#featured article').filter(has=page.locator('h3',has_text='CUBIQ')).get_by_role('button',name='Chơi ngay',exact=True).click();page.wait_for_url('**/games/cubiq/index.html');page.locator('[data-act=menu]').click();page.get_by_role('button',name='?',exact=True).click();page.locator('#xi-private-pin').fill('040804');page.get_by_role('button',name='Mở khóa',exact=True).click();page.locator('#xi-private-unlocked').fill('40');page.locator('#xi-private-jump').fill('20');page.locator('#xi-private-assist').fill('1');page.get_by_role('button',name='Áp dụng').click();assert page.locator('[data-el=level]').inner_text()=='Màn 20';assert page.locator('[data-el=hearts]').inner_text()=='∞';page.locator('[data-act=menu]').click();page.get_by_role('button',name='Về sảnh Xi').click();page.locator('#discover h2').wait_for();page.locator('html[data-theme=jade]').wait_for(state='attached');assert page.locator('html').get_attribute('data-theme')=='jade';assert page.locator('#recentGames .recent-tile').first.get_by_text('CUBIQ',exact=True).is_visible();assert json.loads(page.evaluate("localStorage.getItem('xi:ui:recent-v1')"))[0]=='cubiq'
    assert json.loads(page.evaluate("localStorage.getItem('xi:game:cubiq:save')"))['level']==20
-   print('PASS F1.7 to F1.10 natural activation, four versioned updates, failed offline update, unchanged save keys, real offline CUBIQ and persistent appearance',flush=True);b.close()
+   print('PASS F1.7 to F1.11 natural activation, four versioned updates, failed offline update, unchanged save keys, real offline CUBIQ and persistent appearance',flush=True);b.close()
  finally:server.shutdown();server.server_close()
