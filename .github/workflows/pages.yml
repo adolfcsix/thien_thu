@@ -1,7 +1,7 @@
 name: Xi Foundation — Validate and Deploy
 on:
   push:
-    branches: [main, 'feat/xi-adaptive-devices']
+    branches: [main, 'feat/xi-premium-interaction']
     paths: ['Xi_Foundation_1_6_Release_Candidate.zip', '.github/workflows/pages.yml', 'tests/release-preflight.py', 'README.md', 'tests/activation-barrier.py', 'updates/**', 'tests/feather-upgrade.py']
   pull_request:
     branches: [main]
@@ -42,8 +42,10 @@ jobs:
           python3 updates/adaptive-layout/apply.py candidate
           cp candidate.zip baseline-f112.zip
           python3 updates/adaptive-devices/apply.py candidate
+          cp candidate.zip baseline-f113.zip
+          python3 updates/premium-interaction/apply.py candidate
           python3 candidate/tests/release-preflight.py Thien_Thu_V9_0_Web_Deploy.zip candidate.zip
-          sha256sum candidate.zip baseline-f17.zip baseline-f19.zip baseline-f110.zip baseline-f111.zip baseline-f112.zip > candidate.sha256
+          sha256sum candidate.zip baseline-f17.zip baseline-f19.zip baseline-f110.zip baseline-f111.zip baseline-f112.zip baseline-f113.zip > candidate.sha256
       - name: Catalog and unit acceptance
         working-directory: candidate
         run: npm test
@@ -72,6 +74,7 @@ jobs:
             baseline-f110.zip
             baseline-f111.zip
             baseline-f112.zip
+            baseline-f113.zip
           if-no-files-found: error
   browser:
     needs: validate
@@ -103,26 +106,30 @@ jobs:
         run: |
           set -o pipefail
           python -u candidate/tests/browser.py --engine ${{ matrix.engine }} --site candidate/site --baseline Thien_Thu_V9_0_Web_Deploy.zip 2>&1 | tee browser-acceptance.log
-      - name: F1.7 to F1.13 upgrade, offline personalization and recent play acceptance
+      - name: F1.7 to F1.14 upgrade, offline personalization and recent play acceptance
         run: |
           set -o pipefail
           python -u updates/private-options/upgrade-ui.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f17.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.9 to F1.13 shell-only migration and startup acceptance
+      - name: F1.9 to F1.14 shell-only migration and startup acceptance
         run: |
           set -o pipefail
           python -u updates/shell-polish/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f19.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.10 to F1.13 glass preference and offline shell acceptance
+      - name: F1.10 to F1.14 glass preference and offline shell acceptance
         run: |
           set -o pipefail
           python -u updates/liquid-surface/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f110.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.11 to F1.13 adaptive layout and glass preference acceptance
+      - name: F1.11 to F1.14 adaptive layout and glass preference acceptance
         run: |
           set -o pipefail
           python -u updates/adaptive-layout/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f111.zip 2>&1 | tee -a browser-acceptance.log
-      - name: F1.12 to F1.13 live rotation and surface tuning acceptance
+      - name: F1.12 to F1.14 live rotation and surface tuning acceptance
         run: |
           set -o pipefail
           python -u updates/adaptive-devices/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f112.zip 2>&1 | tee -a browser-acceptance.log
+      - name: F1.13 to F1.14 offline premium dialog and motion acceptance
+        run: |
+          set -o pipefail
+          python -u updates/premium-interaction/upgrade.py --engine ${{ matrix.engine }} --site candidate/site --baseline baseline-f113.zip 2>&1 | tee -a browser-acceptance.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
