@@ -1,4 +1,4 @@
-# Xi Game Universe — Thiên Thủ
+# Xi Universe
 
 Nền tảng trò chơi web cài đặt được (PWA). Không cần tài khoản GitHub, không cần tải mã nguồn, không cần cài Node.js để chơi.
 
@@ -111,3 +111,6 @@ PWA phụ thuộc vào bộ nhớ trình duyệt. Hệ điều hành có thể t
 - Tìm game tại Khám phá; nút Cập nhật tải bản module mới mà không xóa bản lưu. Nếu đang dùng bản offline cũ, cập nhật module để nhận chức năng mới.
 - Các tùy chỉnh riêng trong cài đặt trò chơi chỉ dành cho dữ liệu offline, không phải quyền bảo mật máy chủ. Mã mở khóa không phải biện pháp chống người đọc mã nguồn.
 - Nghiệm thu bắt buộc: cả Chromium và WebKit, nâng cấp từ V9.0 và F1.7, giữ tiến trình từng game.
+
+## F1.9 — Xi Universe
+Tên cài đặt mới: Xi Universe, giữ nguyên biểu tượng, định danh và phạm vi PWA. Các thiết bị đã cài có thể giữ nhãn cũ do iOS quản lý; không xóa ứng dụng hoặc dữ liệu để ép đổi tên. Sảnh mới có Nổi bật, Tiếp tục chơi, bộ lọc thể loại, tìm kiếm, Hoạt động, lưới thu gọn và sáu chủ đề F1.8. Bản này đang nghiệm thu; chỉ phát hành sau khi cả hai trình duyệt đạt.
