@@ -46,11 +46,19 @@ patch('tests/browser.py',"            print('PASS three independent offline game
             assert not errors,errors
             print('PASS four independent offline games, remove/reinstall and saves',flush=True)''')
 p=out/'tests/release-preflight.py';s=p.read_text();assert s.count("['legacy','cubiq','block-nova']")==2;p.write_text(s.replace("['legacy','cubiq','block-nova']",repr(ids)),encoding='utf-8')
+# Landscape cover art: verified original bytes, no gameplay or save changes.
+art={'cubiq-cover.webp':'27af7af0f7c43d8638c633bb74fc3e4a1c282ecc35d3252589121638c5414920','block-nova-cover.webp':'892f87aedb4f6f0a83f37f162a20c2d04be8d98b5e422279e1e13bedd3538164'}
+for name,h in art.items():
+    assert sha(root/name)==h, 'Cover integrity: '+name
+    shutil.copyfile(root/name,site/'assets'/name)
+patch('site/hub.css','.featured:not(:first-child) .cover{background-size:contain;background-repeat:no-repeat;background-color:#201d1a}', '.featured .cover{background-size:cover;background-repeat:no-repeat;background-color:#201d1a}')
+patch('tests/ui.py',"assert page.locator('#featured article').count()==4", "assert page.locator('#featured article').count()==4;assert page.locator('#featured .cover').evaluate_all(\"els=>els.every(e=>getComputedStyle(e).backgroundSize==='cover'&&e.clientWidth>0&&e.clientHeight>0)\");assert page.locator('#featured .cover').evaluate_all(\"els=>Promise.all(els.map(async e=>{const im=new Image();im.src=e.style.backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth>0&&im.naturalHeight>0})).then(a=>a.every(Boolean))\")")
 subprocess.run(['node','tools/catalog.mjs','--write'],cwd=out,check=True)
+allowed={'catalog-data.js','hub.css','assets/cubiq-cover.webp','assets/block-nova-cover.webp'}
 for name,h in before.items():
-    if name!='catalog-data.js': assert sha(site/name)==h,name
+    if name not in allowed: assert sha(site/name)==h,name
 # ZIP for existing preflight; generated only once per CI run.
 with zipfile.ZipFile(out.parent/'candidate.zip','w',zipfile.ZIP_DEFLATED) as z:
     for p in sorted(out.rglob('*')):
         if p.is_file(): z.write(p,p.relative_to(out))
-print('F1.7 source overlay built; existing F1.6 site files unchanged except catalog')
+print('F1.7 source overlay built; existing F1.6 game files unchanged; catalog and approved cover art updated')
