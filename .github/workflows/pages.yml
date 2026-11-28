@@ -78,12 +78,18 @@ jobs:
           python candidate/tests/imported-ui.py
           python candidate/tests/personalization-ui.py
           python candidate/tests/layout.py
+      - name: Integrate and verify F1.21 six-game release
+        run: |
+          python3 updates/six-games/apply.py candidate release
+          sha256sum release.zip > release.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: xi-verified-candidate
           path: |
             candidate.zip
             candidate.sha256
+            release.zip
+            release.sha256
             baseline-f17.zip
             baseline-f19.zip
             baseline-f110.zip
@@ -179,6 +185,12 @@ jobs:
         run: |
           set -o pipefail
           python -u updates/offline-resilience/origin-loss.py --engine ${{ matrix.engine }} --site candidate/site 2>&1 | tee -a browser-acceptance.log
+      - name: F1.21 actual six-game release acceptance
+        run: |
+          set -o pipefail
+          sha256sum -c release.sha256
+          unzip -q release.zip -d release
+          python -u updates/six-games/browser.py --engine ${{ matrix.engine }} --site release/site 2>&1 | tee -a browser-acceptance.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -198,9 +210,13 @@ jobs:
         run: |
           sha256sum -c candidate.sha256
           unzip -q candidate.zip -d candidate
+      - name: Extract verified six-game release
+        run: |
+          sha256sum -c release.sha256
+          unzip -q release.zip -d release
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: candidate/site
+          path: release/site
   deploy:
     needs: package
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')

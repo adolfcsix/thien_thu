@@ -153,3 +153,7 @@ Theo phản hồi ảnh iPhone: dành vùng an toàn trên/dưới, dùng inset 
 
 ## F1.20 — FEATHER FURY 14.1 Stability Update
 Nguồn chính xác `Feather-Fury-14.1.html`, SHA256 9d53c91aff9b9ce38d8f442e7cc58f4c68f756c3f804266550c5a4a7e8ccac80 (15.7 MB, 21 mảnh UTF-8 nối nguyên byte tại build). Bảo toàn toàn bộ ảnh nhúng; bổ sung adapter Xi, khóa zoom, safe area, canvas 16:10; không đổi ba game khác/manifest. Khóa mới ff14.1-progress và backup, đọc dự phòng khóa 12.2 và các khóa cũ, không ghi đè bản lưu trước. Local 34/34 unit, preflight, PIN/cá nhân hóa, 8/8 hình học và mô phỏng migration 12.2 đạt. CI giữ tất cả gate cũ và thêm real migration F1.19 -> F1.20 Chromium/WebKit. Chưa kiểm chứng thiết bị iPhone thật và dung lượng RAM thực tế của artwork lớn.
+
+## F1.21 — Six Games Integration
+
+Adds KỲ VIỆN 1.0 (Imperial Jade) and Garden Through Time 0.79.2 (Final Stability RC3). Original HTML files pinned by SHA-256; adapter adds namespaced saves, same-origin legacy copy, viewport and return to Xi. Old four module bytes and PWA identity preserved. Existing F1.20 acceptance remains intact; separate Chromium/WebKit acceptance tests the exact F1.21 release artifact before Pages deployment. New covers are simple local SVG art. No native packaging.
