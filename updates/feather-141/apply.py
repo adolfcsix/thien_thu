@@ -50,6 +50,10 @@ after="if(intro.hidden&&!document.documentElement.hasAttribute('data-startup'))r
 assert h.count(before)==1,'startup gate anchor'
 hub.write_text(h.replace(before,after))
 subprocess.run(['node','--check','site/hub.js'],cwd=root,check=True)
+subprocess.run([sys.executable,str(Path(__file__).resolve().parents[1]/'shell-stability'/'guard.py'),str(site)],check=True)
+subprocess.run(['node','--check','site/sw.js'],cwd=root,check=True)
+with (root/'tests/worker.test.js').open('a') as test:
+ test.write("""\ntest('reject stale shell before activation, retain previous cache',async()=>{const h=harness();h.setWrong('index.html');await assert.rejects(h.event('install'),/Shell integrity mismatch/);assert(h.maps.has(old));assert(!h.maps.has(shellName(scope)));assert(!h.claimed())});\ntest('canonical navigation uses exact shell bytes and no-store version header',async()=>{const h=harness();await h.event('install');await h.event('activate');h.setOnline(false);for(const path of ['', 'index.html','?xi-release=1.20.0']){const r=await h.event('fetch',{request:{method:'GET',url:scope+path,mode:'navigate'}});assert.equal(r.status,200);assert.equal(r.headers.get('X-Xi-Shell-Version'),globalThis.XI_CATALOG.HUB_VERSION);assert.equal(r.headers.get('Cache-Control'),'no-store');assert.equal(await r.text(),readFileSync(new URL('../site/index.html',import.meta.url),'utf8'))}});\n""")
 with zipfile.ZipFile(kit) as z:readme=z.read('README.txt')
 with zipfile.ZipFile(kit,'w',zipfile.ZIP_DEFLATED) as z:
  for f in sorted(site.rglob('*')):

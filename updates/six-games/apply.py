@@ -59,6 +59,8 @@ for gid,*_ in games:
     for i,script in enumerate(re.findall(r'<script>(.*?)</script>',p.read_text(),re.S)):
         f=root/f'xi-check-{i}.js';f.write_text(script)
         subprocess.run(['node','--check',str(f)],check=True);f.unlink()
+subprocess.run([sys.executable,str(src/'shell-stability'/'guard.py'),str(site)],check=True)
+subprocess.run(['node','--check','site/sw.js'],cwd=root,check=True)
 kit=site/'xi-offline-kit.zip'
 with zipfile.ZipFile(kit) as z: readme=z.read('README.txt')
 with zipfile.ZipFile(kit,'w',zipfile.ZIP_DEFLATED) as z:

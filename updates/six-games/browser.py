@@ -29,7 +29,8 @@ with tempfile.TemporaryDirectory() as tmp:
     raise
    page.close()
    page=ctx.new_page();page.on('dialog',lambda d:d.accept())
-   page.goto(url,wait_until='domcontentloaded');observer.close()
+   response=page.goto(url,wait_until='domcontentloaded');observer.close()
+   assert response and response.header_value('x-xi-shell-version')=='1.21.0'
    page.wait_for_function('navigator.serviceWorker.controller?.state==="activated"')
    page.wait_for_function("globalThis.XI_CATALOG?.HUB_VERSION==='1.21.0'")
    page.locator('#discover h2').wait_for()
@@ -55,7 +56,12 @@ with tempfile.TemporaryDirectory() as tmp:
      assert page.evaluate("!!localStorage.getItem('xi:game:garden-through-time:garden-audio-v1')")
      page.locator('#settingsToggle').click();page.locator('#settingsPanel').wait_for()
      page.locator('#settingsToggle').click();page.locator('#settingsPanel').wait_for(state='hidden')
-     page.locator('#continueAdventure').click();page.locator('#fight').click()
+     page.locator('#continueAdventure').click()
+     page.locator('#levels button[aria-current=step]').click()
+     page.locator('#prepare').wait_for()
+     page.locator('#autoDeck').click()
+     assert page.locator('#fight').is_enabled()
+     page.locator('#fight').click()
      page.locator('#board').wait_for()
      assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+2'),gid
     page.locator('#xi-return').click();page.locator('#discover h2').wait_for()

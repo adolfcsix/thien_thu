@@ -25,12 +25,18 @@ new = """            # Observe activation from an out-of-scope, same-origin page
                     && !keys.some(k=>k.startsWith('thien-thu:'+url+':'));
             }''',arg=url,timeout=60000)
             # The new worker has naturally activated and cleaned the old cache.
-            page=ctx.new_page();page.goto(url)
+            # Read the exact new shell independently before testing navigation.
+            import hashlib
+            cached=observer.evaluate('''async url=>{const c=await caches.open('xi:'+url+':shell:1.20.0');const r=await c.match(new URL('index.html',url).href);if(!r)return null;return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await r.arrayBuffer())),x=>x.toString(16).padStart(2,'0')).join('')}''',url)
+            assert cached==hashlib.sha256((args.site/'index.html').read_bytes()).hexdigest(),('cached shell hash',cached)
+            page=ctx.new_page()
+            response=page.goto(url+'?xi-release=1.20.0',wait_until='domcontentloaded')
             observer.close()
+            assert response and response.header_value('x-xi-shell-version')=='1.20.0'
             page.wait_for_function('navigator.serviceWorker.controller?.state === "activated"',timeout=30000)
-            # The previous navigation may have begun before the new controller
-            # owned the document. Reload once under the confirmed active worker.
-            page.reload(wait_until='domcontentloaded')
+            # Also verify the unversioned public root, not just the fresh URL.
+            response=page.goto(url,wait_until='domcontentloaded')
+            assert response and response.header_value('x-xi-shell-version')=='1.20.0'
             try:
                 page.wait_for_function("globalThis.XI_CATALOG?.HUB_VERSION === '1.20.0'",timeout=30000)
                 page.locator('#discover h2').wait_for(timeout=30000);page.get_by_text('Sẵn sàng offline',exact=False).first.wait_for(timeout=30000)
