@@ -43,21 +43,19 @@ new = """            # Observe activation from an out-of-scope, same-origin page
                 });
             }'''
             expected_worker={'version':'1.20.0','scope':url,'shell':'xi:'+url+':shell:1.20.0'}
-            # Return the exact matching reply from a single observation; a second
-            # RPC can race with Chromium's worker idle shutdown/restart.
+            # Poll through the Python API; avoid depending on the browser's
+            # JSHandle serialization of a wait_for_function predicate.
             def require_worker(target,controlled):
-                predicate="async ([scope,controlled,expected])=>{const v=await ("+worker_version+")([scope,controlled]);return v&&v.version===expected.version&&v.scope===expected.scope&&v.shell===expected.shell?v:false}"
-                try:
-                    handle=target.wait_for_function(predicate,arg=[url,controlled,expected_worker],polling=500,timeout=45000)
-                    try:
-                        reply=handle.json_value()
-                        assert {k:reply[k] for k in expected_worker}==expected_worker,reply
+                import time
+                deadline=time.monotonic()+45
+                reply=None
+                while time.monotonic()<deadline:
+                    reply=target.evaluate(worker_version,[url,controlled])
+                    if isinstance(reply,dict) and all(reply.get(k)==v for k,v in expected_worker.items()):
                         return reply
-                    finally:
-                        handle.dispose()
-                except Exception:
-                    print('WORKER HANDSHAKE DIAGNOSTICS',target.evaluate('''async url=>{const r=await navigator.serviceWorker.getRegistration(url);return {scope:r?.scope,script:r?.active?.scriptURL,state:r?.active?.state,controller:navigator.serviceWorker.controller?.scriptURL,caches:await caches.keys()}}''',url), 'last reply:',target.evaluate(worker_version,[url,controlled]),flush=True)
-                    raise
+                    target.wait_for_timeout(500)
+                print('WORKER HANDSHAKE DIAGNOSTICS',target.evaluate('''async url=>{const r=await navigator.serviceWorker.getRegistration(url);return {scope:r?.scope,script:r?.active?.scriptURL,state:r?.active?.state,controller:navigator.serviceWorker.controller?.scriptURL,caches:await caches.keys()}}''',url),'last reply:',reply,flush=True)
+                raise AssertionError(('worker identity mismatch',expected_worker,reply))
             print('PASS active release handshake',require_worker(observer,False),flush=True)
             # Check the network directory switch independently of service-worker routing.
             network_hash=observer.evaluate('''async url=>{const r=await fetch(url+'index.html?xi-network-check=1.20.0',{cache:'no-store'});if(!r.ok)return null;return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await r.arrayBuffer())),x=>x.toString(16).padStart(2,'0')).join('')}''',url)

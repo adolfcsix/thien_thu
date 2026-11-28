@@ -185,6 +185,32 @@ jobs:
         run: |
           set -o pipefail
           python -u updates/offline-resilience/origin-loss.py --engine ${{ matrix.engine }} --site candidate/site 2>&1 | tee -a browser-acceptance.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: xi-acceptance-${{ matrix.engine }}
+          path: browser-acceptance.log
+          if-no-files-found: warn
+  release-browser:
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: xi-verified-candidate
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install selected browser
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps ${{ matrix.engine }}
       - name: F1.21 actual six-game release acceptance
         run: |
           set -o pipefail
@@ -194,11 +220,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: xi-acceptance-${{ matrix.engine }}
+          name: xi-release-acceptance-${{ matrix.engine }}
           path: browser-acceptance.log
           if-no-files-found: warn
   package:
-    needs: [validate, browser]
+    needs: [validate, browser, release-browser]
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-24.04
     steps:
