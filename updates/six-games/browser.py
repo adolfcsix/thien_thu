@@ -18,25 +18,35 @@ with tempfile.TemporaryDirectory() as tmp:
    ctx=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,reduced_motion='reduce')
    ctx.set_default_timeout(90000);errors=[]
    ctx.on('page',lambda pg:pg.on('pageerror',lambda e:errors.append(str(e))))
-   (root/'activation-probe.html').write_text('<!doctype html><title>Activation observer</title>',encoding='utf-8')
-   page=ctx.new_page();page.goto(url,wait_until='domcontentloaded')
-   observer=ctx.new_page();observer.goto(f'http://127.0.0.1:{server.server_port}/activation-probe.html')
-   assert observer.evaluate('navigator.serviceWorker.controller===null')
-   try:
-    observer.wait_for_function("""async url=>{const r=await navigator.serviceWorker.getRegistration(url);const keys=await caches.keys();return r?.active?.state==='activated'&&!r.installing&&!r.waiting&&keys.includes('xi:'+url+':shell:1.25.0')}""",arg=url,timeout=90000)
-   except Exception:
-    print('WORKER DIAGNOSTICS',observer.evaluate("""async url=>{const r=await navigator.serviceWorker.getRegistration(url);return {active:r?.active?.state,installing:r?.installing?.state,waiting:r?.waiting?.state,caches:await caches.keys()}}""",url),errors,flush=True)
-    raise
-   # First online navigation may be supplied by the network.
+   # Fresh install: keep the original foreground client alive. Closing it
+   # during claim can leave a replacement WebKit tab uncontrolled. Poll actual
+   # VERSION replies, not a cached lifecycle-state snapshot.
    expected_hash=hashlib.sha256((a.site/'index.html').read_bytes()).hexdigest()
    expected_worker={'version':'1.25.0','scope':url,'shell':'xi:'+url+':shell:1.25.0'}
-   page.close()
-   page=ctx.new_page();page.on('dialog',lambda d:d.accept())
-   response=page.goto(url+'index.html?xi-release=1.25.0',wait_until='domcontentloaded');observer.close()
+   page=ctx.new_page();page.on('dialog',lambda d:d.accept());page.bring_to_front()
+   response=page.goto(url+'index.html?xi-release=1.25.0',wait_until='domcontentloaded')
    assert response and response.ok
    assert hashlib.sha256(response.body()).hexdigest()==expected_hash,('online shell',page.title())
-   page.wait_for_function('navigator.serviceWorker.controller?.state==="activated"')
-   assert rpc(page,'VERSION')['value']==expected_worker
+   import time
+   deadline=time.monotonic()+120
+   next_navigation=time.monotonic()+5
+   last=None
+   while time.monotonic()<deadline:
+    last=page.evaluate('''async()=>{const r=await navigator.serviceWorker.getRegistration();const c=navigator.serviceWorker.controller;return {active:r?.active?.state,installing:r?.installing?.state,waiting:r?.waiting?.state,controller:c?.scriptURL,controllerState:c?.state}}''')
+    if last.get('controller'):
+     reply=page.evaluate('''()=>{const w=navigator.serviceWorker.controller;if(!w)return null;return new Promise(resolve=>{const c=new MessageChannel(),t=setTimeout(()=>{c.port1.close();resolve(null)},5000);c.port1.onmessage=e=>{clearTimeout(t);c.port1.close();resolve(e.data?.ok?e.data.value:null)};w.postMessage({type:'VERSION'},[c.port2])})}''')
+     if reply==expected_worker:break
+    if last.get('active')=='activated' and not last.get('installing') and not last.get('waiting') and time.monotonic()>=next_navigation:
+     # Real navigation, no unregister, skipWaiting, cache injection or offline bypass.
+     response=page.goto(url+'index.html?xi-release=1.25.0',wait_until='domcontentloaded')
+     assert response and response.ok
+     assert hashlib.sha256(response.body()).hexdigest()==expected_hash
+     next_navigation=time.monotonic()+10
+    page.wait_for_timeout(500)
+   else:
+    print('WORKER DIAGNOSTICS',last,page.evaluate('async()=>await caches.keys()'),errors,flush=True)
+    raise AssertionError('Fresh client did not acquire exact release worker')
+   print('PASS foreground fresh installation and exact controlling worker',flush=True)
    ctx.set_offline(True)
    try:
     response=page.goto(url,wait_until='domcontentloaded')
