@@ -57,10 +57,9 @@ with tempfile.TemporaryDirectory() as tmp:
    try:
     for gid in ('feather-fury','ky-vien','garden-through-time'):
      cover='assets/'+gid+'-cover.svg'
-     image=page.locator(f'#featured article[data-game-id="{gid}"] .cover img.cover-art')
-     image.scroll_into_view_if_needed()
-     assert image.get_attribute('src')==cover
-     assert image.evaluate('''async el=>{await el.decode();return el.complete&&el.naturalWidth===960&&el.naturalHeight===540&&el.getBoundingClientRect().width>0}'''),gid
+     # The lobby refreshes cards asynchronously; poll the current live node
+     # rather than scrolling a stale ElementHandle. Keep image and offline hash gates.
+     page.wait_for_function('''([gid,cover])=>{const el=document.querySelector('#featured article[data-game-id="'+gid+'"] img.cover-art');return el?.getAttribute('src')===cover&&el.complete&&el.naturalWidth===960&&el.naturalHeight===540&&el.getBoundingClientRect().width>0}''',arg=[gid,cover],timeout=30000)
      actual=page.evaluate('''async p=>{const r=await fetch(p);if(!r.ok)throw Error('cover '+r.status);return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await r.arrayBuffer())),x=>x.toString(16).padStart(2,'0')).join('')}''',cover)
      assert actual==hashlib.sha256((a.site/cover).read_bytes()).hexdigest(),gid
    finally:ctx.set_offline(False)
