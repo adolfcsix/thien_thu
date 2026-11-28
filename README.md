@@ -177,3 +177,7 @@ Featured game covers use real local image elements, with the same card layout an
 ## F1.25 — Huyền Ảnh RC3 integration
 
 Seven-game release candidate. Reconstruct the exact uploaded Huyền Ảnh v82 RC3 HTML and real gameplay preview from pinned compressed text sources in `updates/huyen-anh-rc3/`; verify both SHA-256 digests before adapting. Existing six runtime modules are unchanged. Huyền Ảnh is an offline playtest (0.82.3), not a final MMORPG release. All original migration and browser gates remain mandatory. Native acceptance includes independent install/remove, scoped save and backup, restore, offline launch and verified bundled upstream notices. Original game-specific physical device and long-session QA remains open. See `updates/huyen-anh-rc3/SOURCE-AND-QA.md`.
+
+## F1.26 — FEATHER FURY 16.2 Save Integrity & Stability
+
+Exact 21,894,085-byte original SHA-256 `a5cc92a07aced1ef5c28c775d0c1683e4fa91533d4bf27d54feaa33e5cabd764`. Reconstruct with 13 compressed delta segments and SHA-addressed identical artwork from 14.1. Validate original and integrated hashes before use. Only Feather changes; separate schema-18 primary/backup keys retain old bytes, with tests for future schema, conflicting writes and backup recovery. The full 1.25 release is retained as the migration fixture, and both Chromium/WebKit must pass independent game update, old-cache offline fallback, native save migration and other seven-game acceptance gates before Pages deployment.

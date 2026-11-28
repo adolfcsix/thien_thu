@@ -78,9 +78,13 @@ jobs:
           python candidate/tests/imported-ui.py
           python candidate/tests/personalization-ui.py
           python candidate/tests/layout.py
-      - name: Integrate and verify F1.25 seven-game release
+      - name: Integrate and verify F1.26 seven-game release
         run: |
           python3 updates/six-games/apply.py candidate release
+          cp release.zip baseline-f125.zip
+          sha256sum baseline-f125.zip > baseline-f125.sha256
+          python3 updates/feather-162/apply.py release
+          node updates/feather-162/save-test.cjs release/site/games/feather-fury/index.html
           python3 updates/six-games/freeze.py release
           sha256sum release.zip > release.sha256
       - uses: actions/upload-artifact@v4
@@ -103,6 +107,8 @@ jobs:
             baseline-f117.zip
             baseline-f118.zip
             baseline-f119.zip
+            baseline-f125.zip
+            baseline-f125.sha256
           if-no-files-found: error
   browser:
     needs: validate
@@ -212,13 +218,15 @@ jobs:
         run: |
           python -m pip install playwright
           python -m playwright install --with-deps ${{ matrix.engine }}
-      - name: F1.25 actual seven-game release acceptance
+      - name: F1.26 actual seven-game release acceptance
         run: |
           set -o pipefail
           sha256sum -c release.sha256
           unzip -q release.zip -d release
           python3 release/tools/verify-source.py release
           python -u release/tests/browser.py --engine ${{ matrix.engine }} --site release/site 2>&1 | tee -a browser-acceptance.log
+          sha256sum -c baseline-f125.sha256
+          python -u updates/feather-162/upgrade.py --engine ${{ matrix.engine }} --site release/site --baseline baseline-f125.zip 2>&1 | tee -a browser-acceptance.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -280,7 +288,7 @@ jobs:
           mkdir canonical
           unzip -q release.zip -d canonical
           python3 canonical/tools/verify-source.py canonical
-          branch="consolidation/f1.25-$(echo "$GITHUB_SHA" | cut -c1-12)"
+          branch="consolidation/f1.26-$(echo "$GITHUB_SHA" | cut -c1-12)"
           git config user.name "Xi release automation"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
