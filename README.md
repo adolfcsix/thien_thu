@@ -150,3 +150,6 @@ Khóa zoom ở bốn trang game bằng viewport 1:1, touch-action cho canvas và
 
 ### Sky Odyssey — iPhone safe-area correction
 Theo phản hồi ảnh iPhone: dành vùng an toàn trên/dưới, dùng inset thực tế với dự phòng 60/24 px khi iOS standalone dọc; HUD tách khỏi canvas ở hướng dọc, 4 cột đội hình trên màn dọc đủ cao; giữ tỷ lệ canvas 16:10, không thay đổi dữ liệu game. Màn ngắn cho phép cuộn, không ép cỡ nút. Local kiểm tra 7 hình học safe area mô phỏng, CI thêm cùng kiểm thử Chromium/WebKit. Chưa nghiệm thu iPhone vật lý.
+
+## F1.20 — FEATHER FURY 14.1 Stability Update
+Nguồn chính xác `Feather-Fury-14.1.html`, SHA256 9d53c91aff9b9ce38d8f442e7cc58f4c68f756c3f804266550c5a4a7e8ccac80 (15.7 MB, 21 mảnh UTF-8 nối nguyên byte tại build). Bảo toàn toàn bộ ảnh nhúng; bổ sung adapter Xi, khóa zoom, safe area, canvas 16:10; không đổi ba game khác/manifest. Khóa mới ff14.1-progress và backup, đọc dự phòng khóa 12.2 và các khóa cũ, không ghi đè bản lưu trước. Local 34/34 unit, preflight, PIN/cá nhân hóa, 8/8 hình học và mô phỏng migration 12.2 đạt. CI giữ tất cả gate cũ và thêm real migration F1.19 -> F1.20 Chromium/WebKit. Chưa kiểm chứng thiết bị iPhone thật và dung lượng RAM thực tế của artwork lớn.
