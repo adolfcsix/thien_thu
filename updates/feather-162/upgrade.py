@@ -47,6 +47,20 @@ with tempfile.TemporaryDirectory() as tmp:
    ctx.set_offline(True);page.goto(gameurl);page.locator('#canvas').wait_for();assert page.locator('#xi-gesture-162').count()==1;assert page.locator('#coins').inner_text()=='12345' and page.locator('#feathers').inner_text()=='567'
    page.locator('#menu').click();page.get_by_role('button',name='Chọn 8 chim ra trận',exact=True).click();assert page.locator('[data-r]').count()==24;page.locator('[data-r="0"]').click();page.locator('[data-r="8"]').click();page.locator('#saveFlock').click();page.get_by_role('button',name='Về sảnh Xi',exact=True).click();page.get_by_role('button',name='Xác nhận về sảnh',exact=True).click();page.locator('#discover h2').wait_for()
    assert page.evaluate('(k)=>localStorage.getItem(k)',oldkey)==preserved;v=json.loads(page.evaluate('(k)=>localStorage.getItem(k)',newkey));assert v['schema']==18 and len(v['birds'])==24 and len(v['stars'])==210 and v['coins']==12345 and v['feathers']==567 and v['stars'][0]==3 and v['best'][0]==777 and v['birds'][0]['lv']==5 and 8 in v['flock']
-   assert page.evaluate("(k)=>!!localStorage.getItem(k)",newkey+'-backup')
+   backup=page.evaluate('(k)=>localStorage.getItem(k)',newkey+'-backup')
+   assert backup, '16.2 must seed a backup during the first migration/save'
+   recovered=json.loads(backup)
+   assert recovered['schema']==18 and recovered['coins']==12345 and recovered['feathers']==567 and recovered['stars'][0]==3 and recovered['birds'][0]['lv']==5
+   # Corrupt the test profile's primary; verify actual offline recovery without
+   # touching the previous release's save or the six other games.
+   page.evaluate('(k)=>localStorage.setItem(k,\'{"schema":18}\')',newkey)
+   page.goto(gameurl);page.locator('#canvas').wait_for()
+   assert page.locator('#coins').inner_text()=='12345' and page.locator('#feathers').inner_text()=='567'
+   page.locator('#menu').click();page.get_by_role('button',name='Về sảnh Xi',exact=True).click();page.get_by_role('button',name='Xác nhận về sảnh',exact=True).click();page.locator('#discover h2').wait_for()
+   assert json.loads(page.evaluate('(k)=>localStorage.getItem(k)',newkey))['coins']==12345
+   assert page.evaluate('(k)=>localStorage.getItem(k)',newkey+'-backup')==backup
+   assert page.evaluate('(k)=>localStorage.getItem(k)',oldkey)==preserved
+   assert rpc(page,'DETAILS')['value']==now
+   print('PASS first-save backup, valid recovery copy and offline corrupt-primary recovery',flush=True)
    print('PASS 14.1 old offline cache, independent verified 16.2 update, migrated save and previous version preserved',flush=True);b.close()
  finally:server.shutdown();server.server_close()

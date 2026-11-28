@@ -35,7 +35,9 @@ ret=old[old.index(",['Về sảnh Xi',"):old.index(']]',old.index(",['Về sản
 ret=ret.replace('persist();if(!storage)', 'if(!persist())')
 replace("['Màn mới nhất',()=>start(sv.open)]]","['Màn mới nhất',()=>start(sv.open)]"+ret+"]")
 assert re.findall(pattern,s.encode())==re.findall(pattern,raw)
-assert sha(s.encode())=='14aac55b2f1d070978b04f95f229bda239568018b846e88b086de6ab3aa20dbe'
+# Seed a verified recovery copy even when the migrated save has not changed.
+replace(" if(previous&&previous!==next){try{normalize(JSON.parse(previous));localStorage.setItem(BACKUP_KEY,previous)}catch(e){/* Current save remains authoritative. */}}"," // Seed a verified backup on first save or repair a missing/invalid backup.\n // Never replace a valid backup with an invalid previous primary.\n let fallback=null;\n if(previous&&previous!==next){try{normalize(JSON.parse(previous));fallback=previous}catch(e){}}\n if(fallback===null&&backup){try{normalize(JSON.parse(backup));fallback=backup}catch(e){}}\n if(fallback===null){normalize(JSON.parse(next));fallback=next}\n if(fallback!==backup){try{localStorage.setItem(BACKUP_KEY,fallback)}catch(e){storage=false;pendingSave=true}}")
+assert sha(s.encode())=='87a1835924a5c66d01f3b5ff6ab41a15aa41c7d8b01786670dcd413133802101'
 target.write_text(s,encoding='utf-8')
 for i,code in enumerate(re.findall(r'<script[^>]*>(.*?)</script>',s,re.S)):
  p=root/f'ff162-syntax-{i}.js'

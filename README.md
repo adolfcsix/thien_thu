@@ -181,3 +181,7 @@ Seven-game release candidate. Reconstruct the exact uploaded Huyền Ảnh v82 R
 ## F1.26 — FEATHER FURY 16.2 Save Integrity & Stability
 
 Exact 21,894,085-byte original SHA-256 `a5cc92a07aced1ef5c28c775d0c1683e4fa91533d4bf27d54feaa33e5cabd764`. Reconstruct with 13 compressed delta segments and SHA-addressed identical artwork from 14.1. Validate original and integrated hashes before use. Only Feather changes; separate schema-18 primary/backup keys retain old bytes, with tests for future schema, conflicting writes and backup recovery. The full 1.25 release is retained as the migration fixture, and both Chromium/WebKit must pass independent game update, old-cache offline fallback, native save migration and other seven-game acceptance gates before Pages deployment.
+
+### F1.26 — first-save recovery hardening
+
+The first successful 16.2 save now creates a validated backup even when the migrated state is unchanged. Changed saves rotate the valid previous primary; corrupted primaries do not replace a valid recovery copy. Missing/corrupt backups are repaired, future versions and concurrent primary changes are still protected, and backup write failures are reported with retry available. Added VM regression tests and actual offline corrupt-primary recovery to both browser gates. The original 16.2 source checksum and other six games remain unchanged; only the integration adapter checksum changes. F1.26 was not previously deployed.
