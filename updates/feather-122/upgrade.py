@@ -1,4 +1,4 @@
-"""Real F1.18 -> F1.19: preserve caches and preferences, no forced activation."""
+"""Real F1.18 -> F1.20: preserve caches and preferences, no forced activation."""
 import argparse, functools, http.server, shutil, tempfile, threading, zipfile, json
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -23,10 +23,10 @@ with tempfile.TemporaryDirectory() as tmp:
    page.wait_for_function('navigator.serviceWorker.controller?.state==="activated"');page.locator('#discover h2').wait_for()
    for g in ['legacy','cubiq','block-nova','feather-fury']:assert rpc(page,'INSTALL',g)['ok']
    page.goto(url+'games/feather-fury/index.html');page.locator('#canvas').wait_for();page.locator('#menu').click();page.get_by_role('button',name='Về sảnh Xi',exact=True).click();page.get_by_role('button',name='Xác nhận về sảnh',exact=True).click();page.locator('#discover h2').wait_for()
-   oldkey='xi:game:feather-fury:ff10-progress';newkey='xi:game:feather-fury:ff12.2-progress';fixture=json.loads(page.evaluate('(k)=>localStorage.getItem(k)',oldkey));fixture.update(coins=12345,feathers=567);fixture['stars'][0]=3;fixture['best'][0]=777;fixture['claimed'][0]=True;fixture['birds'][0]['lv']=5;oldsave=json.dumps(fixture);page.evaluate('([k,v])=>localStorage.setItem(k,v)',[oldkey,oldsave])
+   oldkey='xi:game:feather-fury:ff10-progress';newkey='xi:game:feather-fury:ff14.1-progress';fixture=json.loads(page.evaluate('(k)=>localStorage.getItem(k)',oldkey));fixture.update(coins=12345,feathers=567);fixture['stars'][0]=3;fixture['best'][0]=777;fixture['claimed'][0]=True;fixture['birds'][0]['lv']=5;oldsave=json.dumps(fixture);page.evaluate('([k,v])=>localStorage.setItem(k,v)',[oldkey,oldsave])
    old=rpc(page,'DETAILS')['value'];assert all(d['ready'] for d in old.values())
    # All four games have independently versioned touch-policy updates; existing cache and installed versions must stay intact.
-   assert old['feather-fury']['installedVersion']=='10.2' and old['feather-fury']['availableVersion']=='10.2';old['feather-fury']['availableVersion']='12.2';old['feather-fury']['updateAvailable']=True
+   assert old['feather-fury']['installedVersion']=='10.2' and old['feather-fury']['availableVersion']=='10.2';old['feather-fury']['availableVersion']='14.1';old['feather-fury']['updateAvailable']=True
    for gid,version in [('legacy','9.2'),('cubiq','1.2'),('block-nova','1.2')]:
     assert old[gid]['installedVersion']!=version;old[gid]['availableVersion']=version;old[gid]['updateAvailable']=True
    saves={'thien-thu-v8':'legacy-fixture','xi:game:cubiq:save':'cubiq-fixture','xi:ui:appearance-v1':json.dumps({'theme':'jade','compact':True}),'xi:ui:recent-v1':'["cubiq"]'}
@@ -34,12 +34,12 @@ with tempfile.TemporaryDirectory() as tmp:
    names=page.evaluate("async()=> (await caches.keys()).filter(k=>k.includes(':game:')).sort()")
    shutil.rmtree(target);shutil.copytree(args.site,target);page.evaluate('async()=>{const r=await navigator.serviceWorker.getRegistration();await r.update()}');page.wait_for_function('async()=>!!(await navigator.serviceWorker.getRegistration()).waiting',timeout=60000)
    probe=ctx.new_page();probe.goto(f'http://127.0.0.1:{server.server_port}/probe.html');assert probe.evaluate('navigator.serviceWorker.controller===null');page.close()
-   probe.wait_for_function("""async url=>{const r=await navigator.serviceWorker.getRegistration(url),k=await caches.keys();return r?.active?.state==='activated'&&!r.waiting&&!r.installing&&k.includes('xi:'+url+':shell:1.19.0')&&!k.includes('xi:'+url+':shell:1.18.0')}""",arg=url,timeout=60000)
+   probe.wait_for_function("""async url=>{const r=await navigator.serviceWorker.getRegistration(url),k=await caches.keys();return r?.active?.state==='activated'&&!r.waiting&&!r.installing&&k.includes('xi:'+url+':shell:1.20.0')&&!k.includes('xi:'+url+':shell:1.18.0')}""",arg=url,timeout=60000)
    page=ctx.new_page();page.goto(url);probe.close();page.locator('#discover h2').wait_for();assert page.locator('html').get_attribute('data-theme')=='jade';assert rpc(page,'DETAILS')['value']==old
    assert page.evaluate('(keys)=>Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]))',list(saves))==saves
    assert page.evaluate("async()=> (await caches.keys()).filter(k=>k.includes(':game:')).sort()")==names
    ctx.set_offline(True);page.reload();page.locator('#discover h2').wait_for();page.get_by_role('button',name='Thư viện',exact=True).click();page.locator('[data-library-filter=ready]').click();page.wait_for_function("document.querySelectorAll('#libraryGames article').length===4");page.get_by_role('button',name='Hoạt động',exact=True).click();page.locator('#activityRecent').get_by_text('CUBIQ',exact=True).wait_for();page.get_by_role('button',name='Cài đặt',exact=True).click();assert page.locator('#themeChoices [data-theme=jade]').get_attribute('aria-pressed')=='true'
-   print('PASS F1.18 -> F1.19: all game caches, save keys, preferences, recent play and secondary tabs offline',flush=True)
+   print('PASS F1.18 -> F1.20: all game caches, save keys, preferences, recent play and secondary tabs offline',flush=True)
    # Verify toggle persisted during reload and restored when enabled, while offline.
    assert page.locator('html').get_attribute('data-glass')=='on'
    page.locator('#glassEnabled').uncheck()
@@ -125,13 +125,13 @@ with tempfile.TemporaryDirectory() as tmp:
    # Old game may serialize normalized values; record the exact bytes before update.
    preserved=page.evaluate('(k)=>localStorage.getItem(k)',oldkey);assert json.loads(preserved)['coins']==12345
    ctx.set_offline(False);assert rpc(page,'UPDATE','feather-fury')['ok'];now=rpc(page,'DETAILS')['value']
-   assert all(now[g]==old[g] for g in ['legacy','cubiq','block-nova']);assert now['feather-fury']['installedVersion']=='12.2' and not now['feather-fury']['updateAvailable'] and now['feather-fury']['backupBytes']>0
+   assert all(now[g]==old[g] for g in ['legacy','cubiq','block-nova']);assert now['feather-fury']['installedVersion']=='14.1' and not now['feather-fury']['updateAvailable'] and now['feather-fury']['backupBytes']>0
    assert page.evaluate('(k)=>localStorage.getItem(k)',oldkey)==preserved
    ctx.set_offline(True);page.goto(url+'games/feather-fury/index.html');page.locator('#canvas').wait_for();assert page.locator('#coins').inner_text()=='12345';assert page.locator('#feathers').inner_text()=='567'
    page.locator('#menu').click();page.get_by_role('button',name='Chọn 8 chim ra trận',exact=True).click();assert page.locator('[data-r]').count()==12;page.locator('[data-r="0"]').click();page.locator('[data-r="8"]').click();page.locator('#saveFlock').click()
    page.get_by_role('button',name='Về sảnh Xi',exact=True).click();page.get_by_role('button',name='Xác nhận về sảnh',exact=True).click();page.locator('#discover h2').wait_for()
    assert page.evaluate('(k)=>localStorage.getItem(k)',oldkey)==preserved;updated=json.loads(page.evaluate('(k)=>localStorage.getItem(k)',newkey));assert updated['coins']==12345 and updated['feathers']==567 and updated['stars'][0]==3 and updated['best'][0]==777 and updated['birds'][0]['lv']==5 and 8 in updated['flock'] and len(updated['flock'])==8
-   print('PASS FEATHER FURY 10.2 -> 12.2 failed offline update, independent cache, old save unchanged and offline roster',flush=True)
+   print('PASS FEATHER FURY 10.2 -> 14.1 failed offline update, independent cache, old save unchanged and offline roster',flush=True)
    ctx.set_offline(False)
    for gid,version in [('legacy','9.2'),('cubiq','1.2'),('block-nova','1.2')]:
     assert rpc(page,'UPDATE',gid)['ok'];d=rpc(page,'DETAILS')['value'][gid];assert d['installedVersion']==version and d['ready'] and not d['updateAvailable'] and d['backupBytes']>0
