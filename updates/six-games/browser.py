@@ -22,9 +22,9 @@ with tempfile.TemporaryDirectory() as tmp:
    # during claim can leave a replacement WebKit tab uncontrolled. Poll actual
    # VERSION replies, not a cached lifecycle-state snapshot.
    expected_hash=hashlib.sha256((a.site/'index.html').read_bytes()).hexdigest()
-   expected_worker={'version':'1.25.0','scope':url,'shell':'xi:'+url+':shell:1.25.0'}
+   expected_worker={'version':'1.26.0','scope':url,'shell':'xi:'+url+':shell:1.26.0'}
    page=ctx.new_page();page.on('dialog',lambda d:d.accept());page.bring_to_front()
-   response=page.goto(url+'index.html?xi-release=1.25.0',wait_until='domcontentloaded')
+   response=page.goto(url+'index.html?xi-release=1.26.0',wait_until='domcontentloaded')
    assert response and response.ok
    assert hashlib.sha256(response.body()).hexdigest()==expected_hash,('online shell',page.title())
    import time
@@ -38,7 +38,7 @@ with tempfile.TemporaryDirectory() as tmp:
      if reply==expected_worker:break
     if last.get('active')=='activated' and not last.get('installing') and not last.get('waiting') and time.monotonic()>=next_navigation:
      # Real navigation, no unregister, skipWaiting, cache injection or offline bypass.
-     response=page.goto(url+'index.html?xi-release=1.25.0',wait_until='domcontentloaded')
+     response=page.goto(url+'index.html?xi-release=1.26.0',wait_until='domcontentloaded')
      assert response and response.ok
      assert hashlib.sha256(response.body()).hexdigest()==expected_hash
      next_navigation=time.monotonic()+10
@@ -50,22 +50,22 @@ with tempfile.TemporaryDirectory() as tmp:
    ctx.set_offline(True)
    try:
     response=page.goto(url,wait_until='domcontentloaded')
-    assert response and response.ok and response.header_value('x-xi-shell-version')=='1.25.0',('offline shell',response.all_headers() if response else None)
+    assert response and response.ok and response.header_value('x-xi-shell-version')=='1.26.0',('offline shell',response.all_headers() if response else None)
     assert hashlib.sha256(response.body()).hexdigest()==expected_hash
     assert rpc(page,'VERSION')['value']==expected_worker
-    page.wait_for_function("globalThis.XI_CATALOG?.HUB_VERSION==='1.25.0'")
+    page.wait_for_function("globalThis.XI_CATALOG?.HUB_VERSION==='1.26.0'")
    finally:
     ctx.set_offline(False)
    page.locator('#intro').wait_for(state='hidden')
    page.locator('#discover h2').wait_for()
-   assert page.evaluate('XI_CATALOG.HUB_VERSION')=='1.25.0'
-   ids=['legacy','cubiq','block-nova','feather-fury','ky-vien','garden-through-time','huyen-anh']
+   assert page.evaluate('XI_CATALOG.HUB_VERSION')=='1.26.0'
+   ids=['legacy','cubiq','block-nova','feather-fury','ky-vien','garden-through-time','huyen-anh','pham-nhan-tu-tien']
    assert page.evaluate('XI_CATALOG.released.map(g=>g.id)')==ids
-   page.wait_for_function("document.querySelectorAll('#featured article').length===7")
+   page.wait_for_function("document.querySelectorAll('#featured article').length===8")
    # Local cover assets are versioned shell resources and remain readable offline.
    ctx.set_offline(True)
    try:
-    for gid in ('feather-fury','ky-vien','garden-through-time','huyen-anh'):
+    for gid in ('feather-fury','ky-vien','garden-through-time','huyen-anh','pham-nhan-tu-tien'):
      cover='assets/'+gid+('-cover.webp' if gid=='huyen-anh' else '-cover.svg')
      # The lobby refreshes cards asynchronously; poll the current live node
      # rather than scrolling a stale ElementHandle. Keep image and offline hash gates.
@@ -77,6 +77,16 @@ with tempfile.TemporaryDirectory() as tmp:
    for gid in ids: assert rpc(page,'INSTALL',gid)['ok'],gid
    state=rpc(page,'DETAILS')['value'];assert all(state[g]['ready'] for g in ids)
    assert state['ky-vien']['installedVersion']=='1.0' and state['garden-through-time']['installedVersion']=='0.79.3' and state['huyen-anh']['installedVersion']=='0.82.3'
+   ctx.set_offline(True)
+   page.goto(url+'games/pham-nhan-tu-tien/index.html');page.locator('#xi-return').wait_for()
+   page.locator('#begin').click();page.locator('#start').wait_for(state='hidden')
+   assert page.evaluate("REALMS.length===5 && RELICS.length===9 && save()")
+   assert page.evaluate("!!localStorage.getItem('xi:game:pham-nhan-tu-tien:vankiem-v1')")
+   page.locator('#xi-return').click();page.locator('#discover h2').wait_for()
+   page.goto(url+'games/pham-nhan-tu-tien/index.html');page.locator('#resume').wait_for(state='visible')
+   page.locator('#resume').click();page.locator('#start').wait_for(state='hidden')
+   page.locator('#xi-return').click();page.locator('#discover h2').wait_for()
+   ctx.set_offline(False)
    page.evaluate("""()=>{localStorage.setItem('ky-vien-theme','light');localStorage.setItem('garden-audio-v1',JSON.stringify({music:0,effects:0,muted:true}))}""")
    ctx.set_offline(True)
    for gid in ('ky-vien','garden-through-time'):
