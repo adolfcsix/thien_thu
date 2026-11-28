@@ -1,0 +1,11 @@
+{
+  "name": "xi-foundation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "npm run catalog:check && node --test tests/*.test.js",
+    "start": "python3 -m http.server 8000 --directory site",
+    "catalog:build": "node tools/catalog.mjs --write",
+    "catalog:check": "node tools/catalog.mjs"
+  }
+}
