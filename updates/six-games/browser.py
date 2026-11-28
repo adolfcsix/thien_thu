@@ -1,5 +1,5 @@
 """Actual F1.21 site: six titles, two independent downloads and offline return."""
-import argparse,functools,http.server,threading,tempfile,shutil,json,zipfile
+import argparse,functools,http.server,threading,tempfile,shutil,json,hashlib
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 p=argparse.ArgumentParser();p.add_argument('--engine',required=True,choices=['chromium','webkit']);p.add_argument('--site',type=Path,required=True);a=p.parse_args()
@@ -27,12 +27,25 @@ with tempfile.TemporaryDirectory() as tmp:
    except Exception:
     print('WORKER DIAGNOSTICS',observer.evaluate("""async url=>{const r=await navigator.serviceWorker.getRegistration(url);return {active:r?.active?.state,installing:r?.installing?.state,waiting:r?.waiting?.state,caches:await caches.keys()}}""",url),errors,flush=True)
     raise
+   # First online navigation may be supplied by the network.
+   expected_hash=hashlib.sha256((a.site/'index.html').read_bytes()).hexdigest()
+   expected_worker={'version':'1.21.0','scope':url,'shell':'xi:'+url+':shell:1.21.0'}
    page.close()
    page=ctx.new_page();page.on('dialog',lambda d:d.accept())
-   response=page.goto(url,wait_until='domcontentloaded');observer.close()
-   assert response and response.header_value('x-xi-shell-version')=='1.21.0'
+   response=page.goto(url+'index.html?xi-release=1.21.0',wait_until='domcontentloaded');observer.close()
+   assert response and response.ok
+   assert hashlib.sha256(response.body()).hexdigest()==expected_hash,('online shell',page.title())
    page.wait_for_function('navigator.serviceWorker.controller?.state==="activated"')
-   page.wait_for_function("globalThis.XI_CATALOG?.HUB_VERSION==='1.21.0'")
+   assert rpc(page,'VERSION')['value']==expected_worker
+   ctx.set_offline(True)
+   try:
+    response=page.goto(url,wait_until='domcontentloaded')
+    assert response and response.ok and response.header_value('x-xi-shell-version')=='1.21.0',('offline shell',response.all_headers() if response else None)
+    assert hashlib.sha256(response.body()).hexdigest()==expected_hash
+    assert rpc(page,'VERSION')['value']==expected_worker
+    page.wait_for_function("globalThis.XI_CATALOG?.HUB_VERSION==='1.21.0'")
+   finally:
+    ctx.set_offline(False)
    page.locator('#discover h2').wait_for()
    assert page.evaluate('XI_CATALOG.HUB_VERSION')=='1.21.0'
    ids=['legacy','cubiq','block-nova','feather-fury','ky-vien','garden-through-time']

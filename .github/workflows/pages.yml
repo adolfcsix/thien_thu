@@ -81,6 +81,7 @@ jobs:
       - name: Integrate and verify F1.21 six-game release
         run: |
           python3 updates/six-games/apply.py candidate release
+          python3 updates/six-games/freeze.py release
           sha256sum release.zip > release.sha256
       - uses: actions/upload-artifact@v4
         with:
@@ -216,7 +217,8 @@ jobs:
           set -o pipefail
           sha256sum -c release.sha256
           unzip -q release.zip -d release
-          python -u updates/six-games/browser.py --engine ${{ matrix.engine }} --site release/site 2>&1 | tee -a browser-acceptance.log
+          python3 release/tools/verify-source.py release
+          python -u release/tests/browser.py --engine ${{ matrix.engine }} --site release/site 2>&1 | tee -a browser-acceptance.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -240,6 +242,7 @@ jobs:
         run: |
           sha256sum -c release.sha256
           unzip -q release.zip -d release
+      - run: python3 release/tools/verify-source.py release
       - uses: actions/upload-pages-artifact@v3
         with:
           path: release/site
@@ -257,3 +260,35 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+
+  source-snapshot:
+    needs: [validate, browser, release-browser]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: xi-verified-candidate
+      - name: Export independently buildable source branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum -c release.sha256
+          mkdir canonical
+          unzip -q release.zip -d canonical
+          python3 canonical/tools/verify-source.py canonical
+          branch="consolidation/f1.21-$(echo "$GITHUB_SHA" | cut -c1-12)"
+          git config user.name "Xi release automation"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add -f canonical
+          git diff --cached --stat
+          git commit -m "Consolidated six-game source verified at $GITHUB_SHA"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+            echo "Snapshot branch already exists; refusing to overwrite"
+            exit 1
+          fi
+          git push origin "HEAD:refs/heads/$branch"

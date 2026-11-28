@@ -157,3 +157,7 @@ Nguồn chính xác `Feather-Fury-14.1.html`, SHA256 9d53c91aff9b9ce38d8f442e7cc
 ## F1.21 — Six Games Integration
 
 Adds KỲ VIỆN 1.0 (Imperial Jade) and Garden Through Time 0.79.2 (Final Stability RC3). Original HTML files pinned by SHA-256; adapter adds namespaced saves, same-origin legacy copy, viewport and return to Xi. Old four module bytes and PWA identity preserved. Existing F1.20 acceptance remains intact; separate Chromium/WebKit acceptance tests the exact F1.21 release artifact before Pages deployment. New covers are simple local SVG art. No native packaging.
+
+## Final architecture consolidation — F1.21
+
+The six-game release is independently unit-tested and frozen as a complete source tree with its own catalog baseline, browser acceptance and SHA-256 inventory. Historical four-game candidate and upgrade checks remain mandatory. The exact archive is verified before browser tests and Pages packaging. Only after all required browser jobs pass does CI create a separate consolidation branch containing source under `canonical/`; no automatic merge or overwrite of main. No new games or native packaging.
