@@ -29,14 +29,44 @@ new = """            # Observe activation from an out-of-scope, same-origin page
             import hashlib
             cached=observer.evaluate('''async url=>{const c=await caches.open('xi:'+url+':shell:1.20.0');const r=await c.match(new URL('index.html',url).href);if(!r)return null;return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await r.arrayBuffer())),x=>x.toString(16).padStart(2,'0')).join('')}''',url)
             assert cached==hashlib.sha256((args.site/'index.html').read_bytes()).hexdigest(),('cached shell hash',cached)
+            # Verify the active worker's actual code version via a read-only
+            # message, not merely its state or the presence of a cache name.
+            worker_version = '''async ([scope,controlled])=>{
+                const r=await navigator.serviceWorker.getRegistration(scope);
+                const w=controlled?navigator.serviceWorker.controller:r?.active;
+                if(!w||w.state!=='activated')return null;
+                const ch=new MessageChannel();
+                return new Promise(resolve=>{
+                    const timeout=setTimeout(()=>{ch.port1.close();resolve(null)},1000);
+                    ch.port1.onmessage=e=>{clearTimeout(timeout);ch.port1.close();resolve(e.data?.ok?e.data.value:null)};
+                    w.postMessage({type:'VERSION'},[ch.port2]);
+                });
+            }'''
+            expected_worker={'version':'1.20.0','scope':url,'shell':'xi:'+url+':shell:1.20.0'}
+            observer.wait_for_function("async scope=>{const v=await ("+worker_version+")([scope,false]);return v?.version==='1.20.0'}",arg=url,timeout=30000)
+            assert observer.evaluate(worker_version,[url,False])==expected_worker
+            # Check the network directory switch independently of service-worker routing.
+            network_hash=observer.evaluate('''async url=>{const r=await fetch(url+'index.html?xi-network-check=1.20.0',{cache:'no-store'});if(!r.ok)return null;return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await r.arrayBuffer())),x=>x.toString(16).padStart(2,'0')).join('')}''',url)
+            assert network_hash==cached,('network shell hash',network_hash)
+            # The initial online navigation may be supplied by the network while
+            # control is being assigned. Require exact bytes, then prove the
+            # controlling worker serves the canonical root without any network.
             page=ctx.new_page()
-            response=page.goto(url+'?xi-release=1.20.0',wait_until='domcontentloaded')
+            response=page.goto(url+'index.html?xi-release=1.20.0',wait_until='domcontentloaded')
             observer.close()
-            assert response and response.header_value('x-xi-shell-version')=='1.20.0'
+            assert response and response.ok
+            assert hashlib.sha256(response.body()).hexdigest()==cached,('first online shell',page.title(),response.status,response.header_value('x-xi-shell-version'))
             page.wait_for_function('navigator.serviceWorker.controller?.state === "activated"',timeout=30000)
-            # Also verify the unversioned public root, not just the fresh URL.
-            response=page.goto(url,wait_until='domcontentloaded')
-            assert response and response.header_value('x-xi-shell-version')=='1.20.0'
+            page.wait_for_function("async scope=>{const v=await ("+worker_version+")([scope,true]);return v?.version==='1.20.0'}",arg=url,timeout=30000)
+            assert page.evaluate(worker_version,[url,True])==expected_worker
+            ctx.set_offline(True)
+            try:
+                response=page.goto(url,wait_until='domcontentloaded')
+                assert response and response.ok and response.header_value('x-xi-shell-version')=='1.20.0'
+                assert hashlib.sha256(response.body()).hexdigest()==cached
+                assert page.evaluate(worker_version,[url,True])==expected_worker
+            finally:
+                ctx.set_offline(False)
             try:
                 page.wait_for_function("globalThis.XI_CATALOG?.HUB_VERSION === '1.20.0'",timeout=30000)
                 page.locator('#discover h2').wait_for(timeout=30000);page.get_by_text('Sẵn sàng offline',exact=False).first.wait_for(timeout=30000)
