@@ -38,6 +38,18 @@ for name in ('browser.py','imported-ui.py','personalization-ui.py'):
 # A real navigation destroys the previous JS realm; set_content does not. Use a new
 # page before the hub mock so old game animation callbacks cannot read hub markup.
 p=root/'tests/personalization-ui.py';t=p.read_text();a=' hub(s);page.get_by_role';assert t.count(a)==1;t=t.replace(a,' page.close();page=b.new_page(viewport={"width":390,"height":844},is_mobile=True,has_touch=True,reduced_motion="reduce");page.set_default_timeout(5000);page.on("pageerror",lambda e:errors.append(str(e)))\n hub(s);page.get_by_role');p.write_text(t)
+# A first controller claim already controls this document; reloading during startup
+# can interrupt the ES-module graph. Keep reloads for actual worker replacement.
+hub=site/'hub.js';h=hub.read_text()
+before="navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!busy)location.reload();else refresh()});"
+after="let previousController=navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{const next=navigator.serviceWorker.controller,prior=previousController;previousController=next;if(!next)return;if(prior&&prior!==next&&!busy)location.reload();else refresh()});"
+assert h.count(before)==1,'controllerchange anchor'
+h=h.replace(before,after)
+before="if(intro.hidden)return;intro.hidden=true;shell.inert=false;"
+after="if(intro.hidden&&!document.documentElement.hasAttribute('data-startup'))return;intro.hidden=true;shell.inert=false;"
+assert h.count(before)==1,'startup gate anchor'
+hub.write_text(h.replace(before,after))
+subprocess.run(['node','--check','site/hub.js'],cwd=root,check=True)
 with zipfile.ZipFile(kit) as z:readme=z.read('README.txt')
 with zipfile.ZipFile(kit,'w',zipfile.ZIP_DEFLATED) as z:
  for f in sorted(site.rglob('*')):

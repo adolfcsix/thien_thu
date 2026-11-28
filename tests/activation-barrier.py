@@ -21,14 +21,22 @@ new = """            # Observe activation from an out-of-scope, same-origin page
                 const r=await navigator.serviceWorker.getRegistration(url);
                 const keys=await caches.keys();
                 return r?.active?.state==='activated' && !r.waiting && !r.installing
-                    && keys.some(k=>k.startsWith('xi:'+url+':shell:'))
+                    && keys.includes('xi:'+url+':shell:1.20.0')
                     && !keys.some(k=>k.startsWith('thien-thu:'+url+':'));
             }''',arg=url,timeout=60000)
             # The new worker has naturally activated and cleaned the old cache.
             page=ctx.new_page();page.goto(url)
             observer.close()
             page.wait_for_function('navigator.serviceWorker.controller?.state === "activated"',timeout=30000)
-            page.locator('#discover h2').wait_for(timeout=30000);page.get_by_text('Sẵn sàng offline',exact=False).first.wait_for(timeout=30000)
+            # The previous navigation may have begun before the new controller
+            # owned the document. Reload once under the confirmed active worker.
+            page.reload(wait_until='domcontentloaded')
+            try:
+                page.wait_for_function("globalThis.XI_CATALOG?.HUB_VERSION === '1.20.0'",timeout=30000)
+                page.locator('#discover h2').wait_for(timeout=30000);page.get_by_text('Sẵn sàng offline',exact=False).first.wait_for(timeout=30000)
+            except Exception:
+                print('STARTUP DIAGNOSTICS',page.evaluate("()=>({url:location.href,title:document.title,version:globalThis.XI_CATALOG?.HUB_VERSION,startup:document.documentElement.dataset.startup,controller:navigator.serviceWorker.controller?.state,notice:document.getElementById('notice')?.textContent})"),flush=True)
+                raise
             print('PASS natural worker activation (out-of-scope observer)',flush=True)"""
 source=path.read_text(encoding='utf-8')
 if source.count(old)!=1:
