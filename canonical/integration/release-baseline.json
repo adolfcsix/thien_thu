@@ -1,0 +1,154 @@
+[
+  {
+    "id": "legacy",
+    "version": "9.2",
+    "entry": "games/legacy/index.html",
+    "save": {
+      "keys": [
+        "thien-thu-v8",
+        "thien-thu-v8-recovery"
+      ],
+      "namespace": "xi:game:legacy:"
+    },
+    "integrity": {
+      "games/legacy/assets/brand-mark.png": "ab6d4231018cfa98e279c6c2c46a77abf281c716930b55a37c7dede213e75a81",
+      "games/legacy/assets/brand-star.png": "07c17ac54f5c7c5876e8042a2d76b1a7ed23734c511becfd80b2f8d8f299c3bf",
+      "games/legacy/assets/icon-180.png": "d7315ea8b00964d87339c04a7bb37c9143c610257bc96e4ee075d0fc2cdc59ee",
+      "games/legacy/assets/icon-192.png": "9e33d6fd984f5bea5d7e4b83b169137b7dfbbaf19d8f0b60f366c8ec54a142bf",
+      "games/legacy/index.html": "bdecc21cbbd90b08531757ebed66bf7adebf380be6446a9bf6249b656a8c6390",
+      "games/legacy/src/app.js": "a14a11f7454517c119241c80167a487b55d82ed1347ee22a7801a6790876d4b9",
+      "games/legacy/src/audio.js": "484ca4b9952497869b9f4b4261e83ce6dd0ca65cd4582830c2bce98f1107a944",
+      "games/legacy/src/data.js": "017b601a5e484f97597496273011f0bee146e7b54eff0f5cc438c217f36f25d3",
+      "games/legacy/src/engine.js": "9030a73aed922b5b54b59a0e314fdf19ca59e6ab98d634f2594cc5d6cdd9d053",
+      "games/legacy/src/input.js": "04607b836329216ea29e0cadcab701597b716ea3dc330d0c7fe9d93a21eb75ad",
+      "games/legacy/src/intro.js": "de033761c3018709a56abfd9ddb160ee896999b21b1542197db731bf1ce6f8e9",
+      "games/legacy/src/performance.js": "66309f39b99fefd651079c72eacb438c2db8df5a5b100eacb7c6f955849c3e6d",
+      "games/legacy/src/render.js": "1874333553769c253230a89f8225b217c73100f6d209a3f43a2179404f0d72a0",
+      "games/legacy/src/save.js": "e8e478eaf9bdcd348b608eed9d5bb577d03d303a116e1e400139e48ed78e87af",
+      "games/legacy/style.css": "6240a4c5968f3780fe46f1bee51183bb622d5f44b0a76fdec0454d5f5b796312"
+    }
+  },
+  {
+    "id": "cubiq",
+    "version": "1.2",
+    "entry": "games/cubiq/index.html",
+    "save": {
+      "namespace": "xi:game:cubiq:",
+      "keys": [
+        "xi:game:cubiq:save"
+      ]
+    },
+    "integrity": {
+      "games/cubiq/index.html": "0b95e1d89e25e4bae54a331f1eb58c0553ae524c86901e2242e50ba263fda9db"
+    }
+  },
+  {
+    "id": "block-nova",
+    "version": "1.2",
+    "entry": "games/block-nova/index.html",
+    "save": {
+      "namespace": "xi:game:block-nova:",
+      "keys": [
+        "xi:game:block-nova:best",
+        "xi:game:block-nova:sound",
+        "xi:game:block-nova:classic",
+        "xi:game:block-nova:adventure",
+        "xi:game:block-nova:weekly"
+      ]
+    },
+    "integrity": {
+      "games/block-nova/index.html": "d00d7b96b5171397e33fa69a7856cc2261b659035e6f2f40ce848e8dd8791dc7"
+    }
+  },
+  {
+    "id": "feather-fury",
+    "version": "16.2",
+    "entry": "games/feather-fury/index.html",
+    "save": {
+      "namespace": "xi:game:feather-fury:",
+      "keys": [
+        "xi:game:feather-fury:ff16.2-progress",
+        "xi:game:feather-fury:ff16.2-progress-backup",
+        "xi:game:feather-fury:ff14.1-progress",
+        "xi:game:feather-fury:ff14.1-progress-backup",
+        "xi:game:feather-fury:ff12.2-progress-backup",
+        "xi:game:feather-fury:ff12.2-progress",
+        "xi:game:feather-fury:ff12.1-progress",
+        "xi:game:feather-fury:ff10-progress",
+        "xi:game:feather-fury:ff9-progress",
+        "xi:game:feather-fury:ff8-progress",
+        "xi:game:feather-fury:ff7-progress"
+      ]
+    },
+    "integrity": {
+      "games/feather-fury/index.html": "87a1835924a5c66d01f3b5ff6ab41a15aa41c7d8b01786670dcd413133802101"
+    }
+  },
+  {
+    "id": "ky-vien",
+    "version": "1.0",
+    "entry": "games/ky-vien/index.html",
+    "save": {
+      "namespace": "xi:game:ky-vien:",
+      "keys": [
+        "xi:game:ky-vien:ky-vien-v1",
+        "xi:game:ky-vien:ky-vien-theme",
+        "xi:game:ky-vien:kv-archive-v1",
+        "xi:game:ky-vien:kv-learning-v1",
+        "xi:game:ky-vien:kv-results-v1",
+        "xi:game:ky-vien:kv-skin",
+        "xi:game:ky-vien:kv-sound",
+        "xi:game:ky-vien:kv-piece-skin"
+      ]
+    },
+    "integrity": {
+      "games/ky-vien/index.html": "a0ba7d29e1a45cf71dbe3a33c49d3527d857735e13997a0d81120daeaab57252"
+    }
+  },
+  {
+    "id": "garden-through-time",
+    "version": "0.79.3",
+    "entry": "games/garden-through-time/index.html",
+    "save": {
+      "namespace": "xi:game:garden-through-time:",
+      "keys": [
+        "xi:game:garden-through-time:garden-time-v1",
+        "xi:game:garden-through-time:garden-audio-v1",
+        "xi:game:garden-through-time:garden-graphics-v1",
+        "xi:game:garden-through-time:sandbox-progress-v1",
+        "xi:game:garden-through-time:sandbox-options-v1"
+      ]
+    },
+    "integrity": {
+      "games/garden-through-time/index.html": "97b75a67c9005af8ede10e18a93dc5818eeaa40879dd98b87300a41c8035d005"
+    }
+  },
+  {
+    "id": "huyen-anh",
+    "version": "0.82.3",
+    "entry": "games/huyen-anh/index.html",
+    "save": {
+      "namespace": "xi:game:huyen-anh:",
+      "keys": [
+        "xi:game:huyen-anh:ha-world-v29",
+        "xi:game:huyen-anh:ha-world-v30",
+        "xi:game:huyen-anh:ha-world-v31",
+        "xi:game:huyen-anh:ha-world-v32",
+        "xi:game:huyen-anh:ha-world-v33",
+        "xi:game:huyen-anh:ha-world-v34",
+        "xi:game:huyen-anh:ha-world-v35",
+        "xi:game:huyen-anh:ha-world-v35-backup",
+        "xi:game:huyen-anh:ha-control62",
+        "xi:game:huyen-anh:ha-soft66",
+        "xi:game:huyen-anh:ha-sound67"
+      ]
+    },
+    "integrity": {
+      "games/huyen-anh/LICENSE-Hollow-Crown.txt": "aa807dc25799dbc94cc74196c03316cc128406f64aa3af793aa34abf24fde0bb",
+      "games/huyen-anh/LICENSE-PixelFX.txt": "0a77565a50c3462831244452f129c38d2adc4fd07897cbeba8adc943f958604e",
+      "games/huyen-anh/NOTICE-PixelFX.md": "d12932473f98b1a3f0b5820ae23d568b52e39294ba7c2d60c0649a93a808af3b",
+      "games/huyen-anh/SOURCE-AND-QA.md": "b852c7de4d8f3cd18b4b8d467c460eb9dacf38935b0747a9534c667288b65267",
+      "games/huyen-anh/index.html": "15b190bed3fa8e3e478dfc5890fdd9ecb8ed6f20212d21c987920d7aff5783a7"
+    }
+  }
+]

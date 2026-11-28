@@ -1,0 +1,243 @@
+{
+  "hubVersion": "1.26.0",
+  "games": [
+    {
+      "id": "legacy",
+      "title": "Thiên Thủ",
+      "subtitle": "Legacy of Kingdoms",
+      "genre": "Thủ thành · Chiến thuật",
+      "version": "9.2",
+      "status": "released",
+      "offline": true,
+      "entry": "games/legacy/index.html",
+      "cover": "assets/legacy-cover.webp",
+      "description": "Ba chiến trường, 60 đợt quái và những phòng tuyến của vương quốc.",
+      "contract": 1,
+      "save": {
+        "keys": [
+          "thien-thu-v8",
+          "thien-thu-v8-recovery"
+        ],
+        "namespace": "xi:game:legacy:"
+      },
+      "returnToHub": "../../",
+      "runtime": "static-web",
+      "files": [
+        "games/legacy/index.html",
+        "games/legacy/style.css",
+        "games/legacy/src/app.js",
+        "games/legacy/src/intro.js",
+        "games/legacy/src/audio.js",
+        "games/legacy/src/input.js",
+        "games/legacy/src/performance.js",
+        "games/legacy/src/data.js",
+        "games/legacy/src/engine.js",
+        "games/legacy/src/render.js",
+        "games/legacy/src/save.js",
+        "games/legacy/assets/icon-192.png",
+        "games/legacy/assets/icon-180.png",
+        "games/legacy/assets/brand-mark.png",
+        "games/legacy/assets/brand-star.png"
+      ]
+    },
+    {
+      "id": "cubiq",
+      "title": "CUBIQ",
+      "subtitle": "Mobile Edition",
+      "genre": "Giải đố 3D",
+      "description": "Xoay khối lập phương và giải phóng những mũi tên.",
+      "status": "released",
+      "version": "1.2",
+      "offline": true,
+      "runtime": "static-web",
+      "contract": 1,
+      "entry": "games/cubiq/index.html",
+      "returnToHub": "../../",
+      "cover": "assets/cubiq-cover.webp",
+      "save": {
+        "namespace": "xi:game:cubiq:",
+        "keys": [
+          "xi:game:cubiq:save"
+        ]
+      },
+      "files": [
+        "games/cubiq/index.html"
+      ]
+    },
+    {
+      "id": "block-nova",
+      "title": "BLOCK NOVA",
+      "subtitle": "Mobile Edition",
+      "genre": "Xếp khối · Giải đố",
+      "description": "Classic, Adventure và thử thách tuần trên bảng 8×8.",
+      "status": "released",
+      "version": "1.2",
+      "offline": true,
+      "runtime": "static-web",
+      "contract": 1,
+      "entry": "games/block-nova/index.html",
+      "returnToHub": "../../",
+      "cover": "assets/block-nova-cover.webp",
+      "save": {
+        "namespace": "xi:game:block-nova:",
+        "keys": [
+          "xi:game:block-nova:best",
+          "xi:game:block-nova:sound",
+          "xi:game:block-nova:classic",
+          "xi:game:block-nova:adventure",
+          "xi:game:block-nova:weekly"
+        ]
+      },
+      "files": [
+        "games/block-nova/index.html"
+      ]
+    },
+    {
+      "id": "feather-fury",
+      "title": "FEATHER FURY",
+      "subtitle": "Save Integrity & Stability",
+      "genre": "Kéo ná · Vật lý 2D",
+      "description": "210 màn, 420 chặng, 24 chim, 8 chim ra trận, chiến dịch không gian và thử thách đặc biệt.",
+      "status": "released",
+      "version": "16.2",
+      "offline": true,
+      "runtime": "static-web",
+      "contract": 1,
+      "entry": "games/feather-fury/index.html",
+      "returnToHub": "../../",
+      "cover": "assets/feather-fury-cover.svg",
+      "save": {
+        "namespace": "xi:game:feather-fury:",
+        "keys": [
+          "xi:game:feather-fury:ff16.2-progress",
+          "xi:game:feather-fury:ff16.2-progress-backup",
+          "xi:game:feather-fury:ff14.1-progress",
+          "xi:game:feather-fury:ff14.1-progress-backup",
+          "xi:game:feather-fury:ff12.2-progress-backup",
+          "xi:game:feather-fury:ff12.2-progress",
+          "xi:game:feather-fury:ff12.1-progress",
+          "xi:game:feather-fury:ff10-progress",
+          "xi:game:feather-fury:ff9-progress",
+          "xi:game:feather-fury:ff8-progress",
+          "xi:game:feather-fury:ff7-progress"
+        ]
+      },
+      "files": [
+        "games/feather-fury/index.html"
+      ]
+    },
+    {
+      "id": "ky-vien",
+      "title": "KỲ VIỆN",
+      "subtitle": "Imperial Jade",
+      "genre": "Cờ · Chiến thuật",
+      "description": "Phòng cờ, đấu AI, học tập, kỳ phổ và hồ sơ kỳ thủ.",
+      "status": "released",
+      "version": "1.0",
+      "offline": true,
+      "runtime": "static-web",
+      "contract": 1,
+      "entry": "games/ky-vien/index.html",
+      "returnToHub": "../../",
+      "cover": "assets/ky-vien-cover.svg",
+      "save": {
+        "namespace": "xi:game:ky-vien:",
+        "keys": [
+          "xi:game:ky-vien:ky-vien-v1",
+          "xi:game:ky-vien:ky-vien-theme",
+          "xi:game:ky-vien:kv-archive-v1",
+          "xi:game:ky-vien:kv-learning-v1",
+          "xi:game:ky-vien:kv-results-v1",
+          "xi:game:ky-vien:kv-skin",
+          "xi:game:ky-vien:kv-sound",
+          "xi:game:ky-vien:kv-piece-skin"
+        ]
+      },
+      "files": [
+        "games/ky-vien/index.html"
+      ]
+    },
+    {
+      "id": "garden-through-time",
+      "title": "Garden Through Time",
+      "subtitle": "Final Stability RC3 · Xi Sandbox",
+      "genre": "Thủ thành · Chiến thuật",
+      "description": "Chiến dịch xuyên thời gian, cây phòng thủ, thử thách và cửa hàng.",
+      "status": "released",
+      "version": "0.79.3",
+      "offline": true,
+      "runtime": "static-web",
+      "contract": 1,
+      "entry": "games/garden-through-time/index.html",
+      "returnToHub": "../../",
+      "cover": "assets/garden-through-time-cover.svg",
+      "save": {
+        "namespace": "xi:game:garden-through-time:",
+        "keys": [
+          "xi:game:garden-through-time:garden-time-v1",
+          "xi:game:garden-through-time:garden-audio-v1",
+          "xi:game:garden-through-time:garden-graphics-v1",
+          "xi:game:garden-through-time:sandbox-progress-v1",
+          "xi:game:garden-through-time:sandbox-options-v1"
+        ]
+      },
+      "files": [
+        "games/garden-through-time/index.html"
+      ]
+    },
+    {
+      "id": "huyen-anh",
+      "title": "HUYỀN ẢNH",
+      "subtitle": "Dragon World v82 RC3 · Chơi thử",
+      "genre": "RPG · Hành động",
+      "description": "Hành trình offline, 111 bản đồ, 6 chủng tộc, 60 kỹ năng, trang bị, đệ tử và Boss.",
+      "status": "released",
+      "version": "0.82.3",
+      "offline": true,
+      "runtime": "static-web",
+      "contract": 1,
+      "entry": "games/huyen-anh/index.html",
+      "returnToHub": "../../",
+      "cover": "assets/huyen-anh-cover.webp",
+      "save": {
+        "namespace": "xi:game:huyen-anh:",
+        "keys": [
+          "xi:game:huyen-anh:ha-world-v29",
+          "xi:game:huyen-anh:ha-world-v30",
+          "xi:game:huyen-anh:ha-world-v31",
+          "xi:game:huyen-anh:ha-world-v32",
+          "xi:game:huyen-anh:ha-world-v33",
+          "xi:game:huyen-anh:ha-world-v34",
+          "xi:game:huyen-anh:ha-world-v35",
+          "xi:game:huyen-anh:ha-world-v35-backup",
+          "xi:game:huyen-anh:ha-control62",
+          "xi:game:huyen-anh:ha-soft66",
+          "xi:game:huyen-anh:ha-sound67"
+        ]
+      },
+      "files": [
+        "games/huyen-anh/index.html",
+        "games/huyen-anh/LICENSE-PixelFX.txt",
+        "games/huyen-anh/NOTICE-PixelFX.md",
+        "games/huyen-anh/LICENSE-Hollow-Crown.txt",
+        "games/huyen-anh/SOURCE-AND-QA.md"
+      ]
+    },
+    {
+      "id": "shadow-blade",
+      "title": "SHADOW BLADE",
+      "subtitle": "Shadow Blade",
+      "genre": "Hành động 2D",
+      "status": "planned",
+      "description": "Đang phát triển độc lập. Chưa phát hành trên Xi."
+    },
+    {
+      "id": "mmorpg",
+      "title": "MMORPG",
+      "subtitle": "Thế giới mở",
+      "genre": "Nhập vai trực tuyến",
+      "status": "planned",
+      "description": "Đang phát triển độc lập. Chưa phát hành trên Xi."
+    }
+  ]
+}
