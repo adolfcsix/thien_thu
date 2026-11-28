@@ -165,3 +165,7 @@ The six-game release is independently unit-tested and frozen as a complete sourc
 ## F1.22 — Garden Through Time Xi Sandbox
 
 Garden 0.79.3 is the Xi integration revision of the pinned RC3 original. In Xi Settings, six independent Sandbox grants enable all normal/hard stages, native plant-pool unlocks with terrain restrictions, native max ranks and Mastery, coins/packets, shop items and starting battle resources. Sandbox uses an explicit launch query and separate progress/options keys. Ordinary launch, prior saves, challenge records and the other five games are unchanged. Reset removes only Sandbox progress; unchecking a grant does not revoke already awarded progress. Offline launch requires the new Garden resources to be installed. Native Sandbox exports carry a different format identifier. The release browser suite exercises the lobby controls, both modes, reset and offline battle; all historical gates remain mandatory.
+
+## F1.23 — Cover artwork refinement
+
+Three new original vector key-art backgrounds replace the outdated Feather 10.1 cover and placeholder chess/garden covers. Artwork is shared by discovery, spotlight, library, recent play and detail surfaces; mobile crop focal positions are tuned per title. SVGs are local and verified as shell resources, including offline SHA-256 checks. Game runtime, saves and Sandbox mechanics are unchanged. No in-battle artwork changes in this release.

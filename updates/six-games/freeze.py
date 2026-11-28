@@ -27,7 +27,7 @@ patch('tests/worker.test.js',"'?xi-release=1.20.0'","'?xi-release='+globalThis.X
 for p in (root/'tests').glob('*.py'):p.unlink()
 shutil.copyfile(repo/'updates/six-games/browser.py',root/'tests/browser.py')
 shutil.copyfile(repo/'updates/six-games/verify-source.py',root/'tools/verify-source.py')
-(root/'README.md').write_text("""# Xi Universe F1.22 — consolidated source candidate
+(root/'README.md').write_text("""# Xi Universe F1.23 — consolidated source candidate
 Run Node 22+ and Python 3.12+.
 - npm test — catalog, integrity and unit tests.
 - npm start — local web server on port 8000.
@@ -41,7 +41,7 @@ Maintain site/ and integration/ directly. For subsequent releases, increment aff
 """,encoding='utf-8')
 assert runtime=={p.relative_to(site).as_posix():sha(p) for p in site.rglob('*') if p.is_file()}
 subprocess.run(['npm','test'],cwd=root,check=True)
-lock={'format':'xi-source-lock-v1','hubVersion':'1.22.0','games':expected,'files':{p.relative_to(root).as_posix():sha(p) for p in sorted(root.rglob('*')) if p.is_file() and p.name!='source-lock.json'}}
+lock={'format':'xi-source-lock-v1','hubVersion':'1.23.0','games':expected,'files':{p.relative_to(root).as_posix():sha(p) for p in sorted(root.rglob('*')) if p.is_file() and p.name!='source-lock.json'}}
 (root/'source-lock.json').write_text(json.dumps(lock,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 subprocess.run([sys.executable,'tools/verify-source.py','.'],cwd=root,check=True)
 with zipfile.ZipFile(root.parent/'release.zip','w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:

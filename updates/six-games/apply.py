@@ -52,6 +52,14 @@ assert s.count(a)==1
 s=s.replace(a,"for(const [k,v] of entries){const enums={'xi:game:ky-vien:ky-vien-theme':['dark','light'],'xi:game:ky-vien:kv-skin':['jade','walnut','slate'],'xi:game:ky-vien:kv-sound':['on','off'],'xi:game:ky-vien:kv-piece-skin':['heritage','classic','onyx']};if(Object.hasOwn(enums,k)){if(!enums[k].includes(v))throw Error('Tùy chọn bản lưu không hợp lệ: '+k);continue}if(k==='xi:game:ky-vien:kv-archive-v1'){let a;try{a=JSON.parse(v)}catch{}if(!Array.isArray(a)||a.length>30||a.some(x=>!x||typeof x!=='object'||!Array.isArray(x.history)||!Array.isArray(x.moves)))throw Error('Kỳ phổ không hợp lệ');continue}let parsed;try{parsed=JSON.parse(v)}")
 p.write_text(s)
 subprocess.run([sys.executable,str(src/'six-games'/'garden-sandbox.py'),str(root)],check=True)
+# Replace hub artwork only; game bytes and existing non-art resources remain protected.
+for gid in ('feather-fury','ky-vien','garden-through-time'):
+    name=gid+'-cover.svg'
+    shutil.copyfile(src/'six-games'/'art'/name,site/'assets'/name)
+    protected.pop(Path('assets')/name,None)
+# Bump the shell version to guarantee a new artwork cache even if F1.22 publishes first.
+p=root/'integration/games.json';d=json.loads(p.read_text());assert d['hubVersion']=='1.22.0';d['hubVersion']='1.23.0';p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+with (site/'hub.css').open('a',encoding='utf-8') as f:f.write('\n/* Per-game art focus, shared by discovery and spotlight. */\n.featured[data-game-id="feather-fury"] .cover,#spotlight[data-slide="feather-fury"]{background-position:64% 44%}.featured[data-game-id="ky-vien"] .cover,#spotlight[data-slide="ky-vien"]{background-position:70% 55%}.featured[data-game-id="garden-through-time"] .cover,#spotlight[data-slide="garden-through-time"]{background-position:69% 52%}\n')
 subprocess.run(['node','tools/catalog.mjs','--write'],cwd=root,check=True)
 subprocess.run(['node','tools/catalog.mjs'],cwd=root,check=True)
 subprocess.run(['node','--check','site/hub.js'],cwd=root,check=True)
@@ -76,4 +84,4 @@ assert all((site/'games'/g[0]/'index.html').exists() for g in games)
 with zipfile.ZipFile(root.parent/'release.zip','w',zipfile.ZIP_DEFLATED) as z:
     for f in sorted(root.rglob('*')):
         if f.is_file() and (f.relative_to(root).parts[0]=='site' or f.suffix not in ('.pyc','.png')):z.write(f,f.relative_to(root))
-print('PASS F1.22 six-game catalog, original source hashes, JS syntax, unchanged previous modules and offline kit')
+print('PASS F1.23 six-game catalog, original source hashes, JS syntax, unchanged previous modules and offline kit')

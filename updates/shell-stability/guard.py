@@ -4,7 +4,10 @@ from pathlib import Path
 site=Path(sys.argv[1])
 worker=site/'sw.js'
 s=worker.read_text(encoding='utf-8')
-pins={p:hashlib.sha256((site/p).read_bytes()).hexdigest() for p in ('index.html','hub.css','hub.js','catalog.js','catalog-data.js','manifest.webmanifest')}
+# The artwork is part of the shell; reject stale or mixed cover assets on install.
+paths=['index.html','hub.css','hub.js','catalog.js','catalog-data.js','manifest.webmanifest']
+paths.extend(p.relative_to(site).as_posix() for p in sorted((site/'assets').glob('*-cover.*')))
+pins={p:hashlib.sha256((site/p).read_bytes()).hexdigest() for p in paths}
 line='const XI_SHELL_INTEGRITY='+json.dumps(pins,separators=(',',':'))+';'
 if 'const XI_SHELL_INTEGRITY=' in s:
     s,n=re.subn(r'^const XI_SHELL_INTEGRITY=.*?;$',lambda _:line,s,flags=re.M)
