@@ -161,3 +161,7 @@ Adds KỲ VIỆN 1.0 (Imperial Jade) and Garden Through Time 0.79.2 (Final Stabi
 ## Final architecture consolidation — F1.21
 
 The six-game release is independently unit-tested and frozen as a complete source tree with its own catalog baseline, browser acceptance and SHA-256 inventory. Historical four-game candidate and upgrade checks remain mandatory. The exact archive is verified before browser tests and Pages packaging. Only after all required browser jobs pass does CI create a separate consolidation branch containing source under `canonical/`; no automatic merge or overwrite of main. No new games or native packaging.
+
+## F1.22 — Garden Through Time Xi Sandbox
+
+Garden 0.79.3 is the Xi integration revision of the pinned RC3 original. In Xi Settings, six independent Sandbox grants enable all normal/hard stages, native plant-pool unlocks with terrain restrictions, native max ranks and Mastery, coins/packets, shop items and starting battle resources. Sandbox uses an explicit launch query and separate progress/options keys. Ordinary launch, prior saves, challenge records and the other five games are unchanged. Reset removes only Sandbox progress; unchecking a grant does not revoke already awarded progress. Offline launch requires the new Garden resources to be installed. Native Sandbox exports carry a different format identifier. The release browser suite exercises the lobby controls, both modes, reset and offline battle; all historical gates remain mandatory.

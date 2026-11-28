@@ -51,6 +51,7 @@ a="for(const [k,v] of entries){let parsed;try{parsed=JSON.parse(v)}"
 assert s.count(a)==1
 s=s.replace(a,"for(const [k,v] of entries){const enums={'xi:game:ky-vien:ky-vien-theme':['dark','light'],'xi:game:ky-vien:kv-skin':['jade','walnut','slate'],'xi:game:ky-vien:kv-sound':['on','off'],'xi:game:ky-vien:kv-piece-skin':['heritage','classic','onyx']};if(Object.hasOwn(enums,k)){if(!enums[k].includes(v))throw Error('Tùy chọn bản lưu không hợp lệ: '+k);continue}if(k==='xi:game:ky-vien:kv-archive-v1'){let a;try{a=JSON.parse(v)}catch{}if(!Array.isArray(a)||a.length>30||a.some(x=>!x||typeof x!=='object'||!Array.isArray(x.history)||!Array.isArray(x.moves)))throw Error('Kỳ phổ không hợp lệ');continue}let parsed;try{parsed=JSON.parse(v)}")
 p.write_text(s)
+subprocess.run([sys.executable,str(src/'six-games'/'garden-sandbox.py'),str(root)],check=True)
 subprocess.run(['node','tools/catalog.mjs','--write'],cwd=root,check=True)
 subprocess.run(['node','tools/catalog.mjs'],cwd=root,check=True)
 subprocess.run(['node','--check','site/hub.js'],cwd=root,check=True)
@@ -75,4 +76,4 @@ assert all((site/'games'/g[0]/'index.html').exists() for g in games)
 with zipfile.ZipFile(root.parent/'release.zip','w',zipfile.ZIP_DEFLATED) as z:
     for f in sorted(root.rglob('*')):
         if f.is_file() and (f.relative_to(root).parts[0]=='site' or f.suffix not in ('.pyc','.png')):z.write(f,f.relative_to(root))
-print('PASS F1.21 six-game catalog, original source hashes, JS syntax, unchanged previous modules and offline kit')
+print('PASS F1.22 six-game catalog, original source hashes, JS syntax, unchanged previous modules and offline kit')

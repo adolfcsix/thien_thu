@@ -1,4 +1,4 @@
-"""Actual F1.21 site: six titles, two independent downloads and offline return."""
+"""Actual F1.22 site: six titles, two independent downloads and offline return."""
 import argparse,functools,http.server,threading,tempfile,shutil,json,hashlib
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -23,16 +23,16 @@ with tempfile.TemporaryDirectory() as tmp:
    observer=ctx.new_page();observer.goto(f'http://127.0.0.1:{server.server_port}/activation-probe.html')
    assert observer.evaluate('navigator.serviceWorker.controller===null')
    try:
-    observer.wait_for_function("""async url=>{const r=await navigator.serviceWorker.getRegistration(url);const keys=await caches.keys();return r?.active?.state==='activated'&&!r.installing&&!r.waiting&&keys.includes('xi:'+url+':shell:1.21.0')}""",arg=url,timeout=90000)
+    observer.wait_for_function("""async url=>{const r=await navigator.serviceWorker.getRegistration(url);const keys=await caches.keys();return r?.active?.state==='activated'&&!r.installing&&!r.waiting&&keys.includes('xi:'+url+':shell:1.22.0')}""",arg=url,timeout=90000)
    except Exception:
     print('WORKER DIAGNOSTICS',observer.evaluate("""async url=>{const r=await navigator.serviceWorker.getRegistration(url);return {active:r?.active?.state,installing:r?.installing?.state,waiting:r?.waiting?.state,caches:await caches.keys()}}""",url),errors,flush=True)
     raise
    # First online navigation may be supplied by the network.
    expected_hash=hashlib.sha256((a.site/'index.html').read_bytes()).hexdigest()
-   expected_worker={'version':'1.21.0','scope':url,'shell':'xi:'+url+':shell:1.21.0'}
+   expected_worker={'version':'1.22.0','scope':url,'shell':'xi:'+url+':shell:1.22.0'}
    page.close()
    page=ctx.new_page();page.on('dialog',lambda d:d.accept())
-   response=page.goto(url+'index.html?xi-release=1.21.0',wait_until='domcontentloaded');observer.close()
+   response=page.goto(url+'index.html?xi-release=1.22.0',wait_until='domcontentloaded');observer.close()
    assert response and response.ok
    assert hashlib.sha256(response.body()).hexdigest()==expected_hash,('online shell',page.title())
    page.wait_for_function('navigator.serviceWorker.controller?.state==="activated"')
@@ -40,20 +40,20 @@ with tempfile.TemporaryDirectory() as tmp:
    ctx.set_offline(True)
    try:
     response=page.goto(url,wait_until='domcontentloaded')
-    assert response and response.ok and response.header_value('x-xi-shell-version')=='1.21.0',('offline shell',response.all_headers() if response else None)
+    assert response and response.ok and response.header_value('x-xi-shell-version')=='1.22.0',('offline shell',response.all_headers() if response else None)
     assert hashlib.sha256(response.body()).hexdigest()==expected_hash
     assert rpc(page,'VERSION')['value']==expected_worker
-    page.wait_for_function("globalThis.XI_CATALOG?.HUB_VERSION==='1.21.0'")
+    page.wait_for_function("globalThis.XI_CATALOG?.HUB_VERSION==='1.22.0'")
    finally:
     ctx.set_offline(False)
    page.locator('#discover h2').wait_for()
-   assert page.evaluate('XI_CATALOG.HUB_VERSION')=='1.21.0'
+   assert page.evaluate('XI_CATALOG.HUB_VERSION')=='1.22.0'
    ids=['legacy','cubiq','block-nova','feather-fury','ky-vien','garden-through-time']
    assert page.evaluate('XI_CATALOG.released.map(g=>g.id)')==ids
    assert page.locator('#featured article').count()==6
    for gid in ids: assert rpc(page,'INSTALL',gid)['ok'],gid
    state=rpc(page,'DETAILS')['value'];assert all(state[g]['ready'] for g in ids)
-   assert state['ky-vien']['installedVersion']=='1.0' and state['garden-through-time']['installedVersion']=='0.79.2'
+   assert state['ky-vien']['installedVersion']=='1.0' and state['garden-through-time']['installedVersion']=='0.79.3'
    page.evaluate("""()=>{localStorage.setItem('ky-vien-theme','light');localStorage.setItem('garden-audio-v1',JSON.stringify({music:0,effects:0,muted:true}))}""")
    ctx.set_offline(True)
    for gid in ids[-2:]:
@@ -86,6 +86,43 @@ with tempfile.TemporaryDirectory() as tmp:
    assert not rpc(page,'INSTALL','garden-through-time')['ok']
    ctx.set_offline(False);assert rpc(page,'INSTALL','garden-through-time')['ok']
    assert all(rpc(page,'DETAILS')['value'][g]['ready'] for g in ids)
+   # Launch Sandbox through lobby settings, even offline. Keep the normal save exact.
+   ns='xi:game:garden-through-time:'
+   normal_key=ns+'garden-time-v1';sandbox_key=ns+'sandbox-progress-v1'
+   normal_save=json.dumps({'intl':0,'china':0,'economy':{'intl':{'coins':123,'plants':{}},'china':{'coins':456,'plants':{}}}},separators=(',',':'))
+   page.evaluate('([k,v])=>localStorage.setItem(k,v)',[normal_key,normal_save])
+   page.get_by_role('button',name='Cài đặt',exact=True).click()
+   page.locator('#gardenSandbox').wait_for()
+   assert page.locator('[data-garden-option]').count()==6
+   ctx.set_offline(True)
+   page.locator('#gardenSandboxLaunch').click()
+   page.wait_for_url('**/games/garden-through-time/index.html?sandbox=1')
+   page.locator('#xi-sandbox-label').wait_for()
+   assert page.evaluate('''()=>Object.keys(WORLDS).every(c=>save.completed[c]===stageMax(c)+1&&save.hard.completed[c]===stageMax(c)+1&&economy[c].coins>=10000000&&Object.keys(PLANTS).every(id=>plantRank(economy[c],id)===UPGRADE_RULES[c].max&&economy[c].plants[id].packets>=10000)&&Object.keys(SHOP_ITEMS).every(id=>shop[c].items[id]===99))''')
+   assert page.evaluate("masteryRank(economy.intl,'pea')===MASTERY_MAX")
+   assert page.evaluate("new Game('intl',0).pool.includes('laser')")
+   assert page.evaluate("SAVE_FORMAT==='garden-through-time-sandbox'")
+   assert page.evaluate('(k)=>localStorage.getItem(k)',normal_key)==normal_save
+   assert page.evaluate('(k)=>!!localStorage.getItem(k)',sandbox_key)
+   page.locator('#levels button').first.click();page.locator('#autoDeck').click();page.locator('#fight').click();page.locator('#board').wait_for()
+   assert page.evaluate('g.sun>=9999&&g.food>=3')
+   page.locator('#xi-return').click();page.locator('#discover h2').wait_for()
+   assert page.evaluate('(k)=>localStorage.getItem(k)',normal_key)==normal_save
+   page.goto(url+'games/garden-through-time/index.html');page.locator('#continueAdventure').wait_for()
+   assert page.evaluate("!XI_SANDBOX&&economy.intl.coins===123&&plantRank(economy.intl,'pea')===1&&save.intl===0")
+   assert page.locator('#xi-sandbox-label').is_hidden()
+   page.locator('#xi-return').click();page.locator('#discover h2').wait_for()
+   page.get_by_role('button',name='Cài đặt',exact=True).click()
+   page.locator('#gardenSandboxReset').click()
+   assert page.evaluate('(k)=>localStorage.getItem(k)',sandbox_key) is None
+   for box in page.locator('[data-garden-option]').all():box.uncheck()
+   page.locator('#gardenSandboxLaunch').click();page.wait_for_url('**/games/garden-through-time/index.html?sandbox=1')
+   page.locator('#xi-sandbox-label').wait_for()
+   assert page.evaluate("XI_SANDBOX&&save.intl===0&&economy.intl.coins===0&&plantRank(economy.intl,'pea')===1")
+   assert page.evaluate('(k)=>localStorage.getItem(k)',normal_key)==normal_save
+   page.locator('#xi-return').click();page.locator('#discover h2').wait_for()
+   ctx.set_offline(False)
+   print('PASS Garden Sandbox full unlock, independent normal save, reset, options-off and offline launch',flush=True)
    # Exercise real import UI and verify rejected data cannot replace saved values.
    page.get_by_role('button',name='Cài đặt',exact=True).click()
    theme='xi:game:ky-vien:ky-vien-theme';archive='xi:game:ky-vien:kv-archive-v1'
