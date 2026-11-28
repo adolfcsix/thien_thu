@@ -37,14 +37,28 @@ new = """            # Observe activation from an out-of-scope, same-origin page
                 if(!w||w.state!=='activated')return null;
                 const ch=new MessageChannel();
                 return new Promise(resolve=>{
-                    const timeout=setTimeout(()=>{ch.port1.close();resolve(null)},1000);
+                    const timeout=setTimeout(()=>{ch.port1.close();resolve(null)},5000);
                     ch.port1.onmessage=e=>{clearTimeout(timeout);ch.port1.close();resolve(e.data?.ok?e.data.value:null)};
                     w.postMessage({type:'VERSION'},[ch.port2]);
                 });
             }'''
             expected_worker={'version':'1.20.0','scope':url,'shell':'xi:'+url+':shell:1.20.0'}
-            observer.wait_for_function("async scope=>{const v=await ("+worker_version+")([scope,false]);return v?.version==='1.20.0'}",arg=url,timeout=30000)
-            assert observer.evaluate(worker_version,[url,False])==expected_worker
+            # Return the exact matching reply from a single observation; a second
+            # RPC can race with Chromium's worker idle shutdown/restart.
+            def require_worker(target,controlled):
+                predicate="async ([scope,controlled,expected])=>{const v=await ("+worker_version+")([scope,controlled]);return v&&v.version===expected.version&&v.scope===expected.scope&&v.shell===expected.shell?v:false}"
+                try:
+                    handle=target.wait_for_function(predicate,arg=[url,controlled,expected_worker],polling=500,timeout=45000)
+                    try:
+                        reply=handle.json_value()
+                        assert {k:reply[k] for k in expected_worker}==expected_worker,reply
+                        return reply
+                    finally:
+                        handle.dispose()
+                except Exception:
+                    print('WORKER HANDSHAKE DIAGNOSTICS',target.evaluate('''async url=>{const r=await navigator.serviceWorker.getRegistration(url);return {scope:r?.scope,script:r?.active?.scriptURL,state:r?.active?.state,controller:navigator.serviceWorker.controller?.scriptURL,caches:await caches.keys()}}''',url), 'last reply:',target.evaluate(worker_version,[url,controlled]),flush=True)
+                    raise
+            print('PASS active release handshake',require_worker(observer,False),flush=True)
             # Check the network directory switch independently of service-worker routing.
             network_hash=observer.evaluate('''async url=>{const r=await fetch(url+'index.html?xi-network-check=1.20.0',{cache:'no-store'});if(!r.ok)return null;return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await r.arrayBuffer())),x=>x.toString(16).padStart(2,'0')).join('')}''',url)
             assert network_hash==cached,('network shell hash',network_hash)
@@ -57,14 +71,13 @@ new = """            # Observe activation from an out-of-scope, same-origin page
             assert response and response.ok
             assert hashlib.sha256(response.body()).hexdigest()==cached,('first online shell',page.title(),response.status,response.header_value('x-xi-shell-version'))
             page.wait_for_function('navigator.serviceWorker.controller?.state === "activated"',timeout=30000)
-            page.wait_for_function("async scope=>{const v=await ("+worker_version+")([scope,true]);return v?.version==='1.20.0'}",arg=url,timeout=30000)
-            assert page.evaluate(worker_version,[url,True])==expected_worker
+            print('PASS controlling release handshake',require_worker(page,True),flush=True)
             ctx.set_offline(True)
             try:
                 response=page.goto(url,wait_until='domcontentloaded')
-                assert response and response.ok and response.header_value('x-xi-shell-version')=='1.20.0'
+                assert response and response.ok and response.header_value('x-xi-shell-version')=='1.20.0',('offline navigation response',response.status if response else None,response.all_headers() if response else None)
                 assert hashlib.sha256(response.body()).hexdigest()==cached
-                assert page.evaluate(worker_version,[url,True])==expected_worker
+                print('PASS offline controlling release handshake',require_worker(page,True),flush=True)
             finally:
                 ctx.set_offline(False)
             try:
