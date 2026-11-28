@@ -58,8 +58,17 @@ for gid in ('feather-fury','ky-vien','garden-through-time'):
     shutil.copyfile(src/'six-games'/'art'/name,site/'assets'/name)
     protected.pop(Path('assets')/name,None)
 # Bump the shell version to guarantee a new artwork cache even if F1.22 publishes first.
-p=root/'integration/games.json';d=json.loads(p.read_text());assert d['hubVersion']=='1.22.0';d['hubVersion']='1.23.0';p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+p=root/'integration/games.json';d=json.loads(p.read_text());assert d['hubVersion']=='1.22.0';d['hubVersion']='1.24.0';p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
 with (site/'hub.css').open('a',encoding='utf-8') as f:f.write('\n/* Per-game art focus, shared by discovery and spotlight. */\n.featured[data-game-id="feather-fury"] .cover,#spotlight[data-slide="feather-fury"]{background-position:64% 44%}.featured[data-game-id="ky-vien"] .cover,#spotlight[data-slide="ky-vien"]{background-position:70% 55%}.featured[data-game-id="garden-through-time"] .cover,#spotlight[data-slide="garden-through-time"]{background-position:69% 52%}\n')
+# Use real image elements for card art; background CSS is not reliably
+# observable during WebKit style/layout transitions. Spotlight remains a background.
+p=site/'hub.js';s=p.read_text(encoding='utf-8')
+anchor="cover.style.backgroundImage=\x60url('\x24{g.cover}')\x60;"
+assert s.count(anchor)==1
+s=s.replace(anchor,"const art=e('img','cover-art');art.src=g.cover;art.alt='';art.decoding='async';cover.append(art);")
+p.write_text(s,encoding='utf-8')
+with (site/'hub.css').open('a',encoding='utf-8') as f:
+    f.write('\n/* Real image surfaces with the same native card layout and focus. */\n.featured .cover-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block;pointer-events:none}.featured .cover::after{z-index:1;pointer-events:none}.featured .cover-label{z-index:2}.featured[data-game-id="feather-fury"] .cover-art{object-position:64% 44%}.featured[data-game-id="ky-vien"] .cover-art{object-position:70% 55%}.featured[data-game-id="garden-through-time"] .cover-art{object-position:69% 52%}\n')
 subprocess.run(['node','tools/catalog.mjs','--write'],cwd=root,check=True)
 subprocess.run(['node','tools/catalog.mjs'],cwd=root,check=True)
 subprocess.run(['node','--check','site/hub.js'],cwd=root,check=True)
@@ -84,4 +93,4 @@ assert all((site/'games'/g[0]/'index.html').exists() for g in games)
 with zipfile.ZipFile(root.parent/'release.zip','w',zipfile.ZIP_DEFLATED) as z:
     for f in sorted(root.rglob('*')):
         if f.is_file() and (f.relative_to(root).parts[0]=='site' or f.suffix not in ('.pyc','.png')):z.write(f,f.relative_to(root))
-print('PASS F1.23 six-game catalog, original source hashes, JS syntax, unchanged previous modules and offline kit')
+print('PASS F1.24 six-game catalog, original source hashes, JS syntax, unchanged previous modules and offline kit')

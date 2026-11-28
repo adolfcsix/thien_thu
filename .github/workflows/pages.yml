@@ -78,7 +78,7 @@ jobs:
           python candidate/tests/imported-ui.py
           python candidate/tests/personalization-ui.py
           python candidate/tests/layout.py
-      - name: Integrate and verify F1.23 six-game release
+      - name: Integrate and verify F1.24 six-game release
         run: |
           python3 updates/six-games/apply.py candidate release
           python3 updates/six-games/freeze.py release
@@ -212,7 +212,7 @@ jobs:
         run: |
           python -m pip install playwright
           python -m playwright install --with-deps ${{ matrix.engine }}
-      - name: F1.23 actual six-game release acceptance
+      - name: F1.24 actual six-game release acceptance
         run: |
           set -o pipefail
           sha256sum -c release.sha256
@@ -280,7 +280,7 @@ jobs:
           mkdir canonical
           unzip -q release.zip -d canonical
           python3 canonical/tools/verify-source.py canonical
-          branch="consolidation/f1.23-$(echo "$GITHUB_SHA" | cut -c1-12)"
+          branch="consolidation/f1.24-$(echo "$GITHUB_SHA" | cut -c1-12)"
           git config user.name "Xi release automation"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"

@@ -169,3 +169,7 @@ Garden 0.79.3 is the Xi integration revision of the pinned RC3 original. In Xi S
 ## F1.23 — Cover artwork refinement
 
 Three new original vector key-art backgrounds replace the outdated Feather 10.1 cover and placeholder chess/garden covers. Artwork is shared by discovery, spotlight, library, recent play and detail surfaces; mobile crop focal positions are tuned per title. SVGs are local and verified as shell resources, including offline SHA-256 checks. Game runtime, saves and Sandbox mechanics are unchanged. No in-battle artwork changes in this release.
+
+## F1.24 — Cross-browser stability follow-up
+
+Featured game covers use real local image elements, with the same card layout and focus points. The release browser test verifies source, intrinsic dimensions, decoding, displayed geometry and offline SHA-256. The origin-loss regression waits in the original foreground client for the exact worker identity, then proves offline navigation before simulated origin loss. The legacy migration handshake accepts an actual version reply rather than discarding it on a potentially stale JavaScript lifecycle-state snapshot. No game version or save schema change; all original gates remain mandatory.

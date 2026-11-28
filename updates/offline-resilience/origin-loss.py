@@ -1,5 +1,5 @@
 """Real browser acceptance for a vanished host and cached recovery kit."""
-import argparse,functools,http.server,threading,tempfile,shutil,json,hashlib,zipfile
+import argparse,functools,http.server,threading,tempfile,shutil,json,hashlib,zipfile,time
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 p=argparse.ArgumentParser();p.add_argument('--engine',choices=['chromium','webkit'],required=True);p.add_argument('--site',type=Path,required=True);args=p.parse_args()
@@ -18,9 +18,32 @@ with tempfile.TemporaryDirectory() as tmp:
  try:
   with sync_playwright() as pw:
    b=getattr(pw,args.engine).launch();ctx=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,reduced_motion='reduce',accept_downloads=True);ctx.set_default_timeout(30000)
-   page=ctx.new_page();page.goto(url)
-   probe=ctx.new_page();probe.goto(f'http://127.0.0.1:{server.server_port}/probe.html');probe.wait_for_function("async url=>{const r=await navigator.serviceWorker.getRegistration(url);return r?.active?.state==='activated'&&!r.installing&&!r.waiting}",arg=url,timeout=60000);page.close();page=ctx.new_page();page.goto(url);probe.close()
-   page.wait_for_function('navigator.serviceWorker.controller?.state==="activated"');page.locator('#discover h2').wait_for()
+   # Stay in the original foreground client until it actually has control.
+   # Closing it between activation and claim can race Chromium's controller assignment.
+   page=ctx.new_page();page.goto(url,wait_until='domcontentloaded')
+   version=page.evaluate('XI_CATALOG.HUB_VERSION')
+   expected={'version':version,'scope':url,'shell':'xi:'+url+':shell:'+version}
+   deadline=time.monotonic()+90
+   last=None
+   while time.monotonic()<deadline:
+    last=page.evaluate('''async()=>{const r=await navigator.serviceWorker.getRegistration();return {active:r?.active?.state,waiting:r?.waiting?.state,controller:navigator.serviceWorker.controller?.state}}''')
+    if last.get('controller')=='activated':
+     reply=rpc(page,'VERSION')
+     if reply.get('value')==expected:break
+    elif last.get('active')=='activated' and not last.get('waiting'):
+     # A normal navigation can acquire control without mutating registration/cache.
+     page.goto(url+'index.html?xi-origin-ready='+version,wait_until='domcontentloaded')
+    page.wait_for_timeout(500)
+   else:raise AssertionError(('origin-loss startup did not acquire exact worker',last))
+   ctx.set_offline(True)
+   try:
+    response=page.goto(url,wait_until='domcontentloaded')
+    assert response and response.ok and response.header_value('x-xi-shell-version')==version
+    assert hashlib.sha256(response.body()).hexdigest()==hashlib.sha256((args.site/'index.html').read_bytes()).hexdigest()
+    assert rpc(page,'VERSION')['value']==expected
+   finally:ctx.set_offline(False)
+   page.locator('#discover h2').wait_for()
+   print('PASS origin-loss exact controlling worker and offline shell',flush=True)
    page.get_by_role('button',name='Cài đặt',exact=True).click();page.locator('#downloadAll').click();page.get_by_text('Tất cả game hiện có đã sẵn sàng offline.',exact=True).wait_for()
    before=rpc(page,'DETAILS')['value'];assert len(before)==4 and all(x['ready'] for x in before.values()),before
    page.goto(url+'games/cubiq/index.html');page.locator('[data-act=menu]').click();page.locator('[data-act=sound]').click();page.get_by_role('button',name='Về sảnh Xi').click();page.locator('#discover h2').wait_for()

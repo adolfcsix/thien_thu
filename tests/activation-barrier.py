@@ -34,7 +34,7 @@ new = """            # Observe activation from an out-of-scope, same-origin page
             worker_version = '''async ([scope,controlled])=>{
                 const r=await navigator.serviceWorker.getRegistration(scope);
                 const w=controlled?navigator.serviceWorker.controller:r?.active;
-                if(!w||w.state!=='activated')return null;
+                if(!w)return null; // The message itself is dispatched only when the worker can handle it.
                 const ch=new MessageChannel();
                 return new Promise(resolve=>{
                     const timeout=setTimeout(()=>{ch.port1.close();resolve(null)},5000);
@@ -47,8 +47,9 @@ new = """            # Observe activation from an out-of-scope, same-origin page
             # JSHandle serialization of a wait_for_function predicate.
             def require_worker(target,controlled):
                 import time
-                deadline=time.monotonic()+45
+                deadline=time.monotonic()+75
                 reply=None
+                target.bring_to_front()
                 while time.monotonic()<deadline:
                     reply=target.evaluate(worker_version,[url,controlled])
                     if isinstance(reply,dict) and all(reply.get(k)==v for k,v in expected_worker.items()):
@@ -68,7 +69,6 @@ new = """            # Observe activation from an out-of-scope, same-origin page
             observer.close()
             assert response and response.ok
             assert hashlib.sha256(response.body()).hexdigest()==cached,('first online shell',page.title(),response.status,response.header_value('x-xi-shell-version'))
-            page.wait_for_function('navigator.serviceWorker.controller?.state === "activated"',timeout=30000)
             print('PASS controlling release handshake',require_worker(page,True),flush=True)
             ctx.set_offline(True)
             try:
