@@ -173,3 +173,7 @@ Three new original vector key-art backgrounds replace the outdated Feather 10.1 
 ## F1.24 — Cross-browser stability follow-up
 
 Featured game covers use real local image elements, with the same card layout and focus points. The release browser test verifies source, intrinsic dimensions, decoding, displayed geometry and offline SHA-256. The origin-loss regression waits in the original foreground client for the exact worker identity, then proves offline navigation before simulated origin loss. The legacy migration handshake accepts an actual version reply rather than discarding it on a potentially stale JavaScript lifecycle-state snapshot. No game version or save schema change; all original gates remain mandatory.
+
+## F1.25 — Huyền Ảnh RC3 integration
+
+Seven-game release candidate. Reconstruct the exact uploaded Huyền Ảnh v82 RC3 HTML and real gameplay preview from pinned compressed text sources in `updates/huyen-anh-rc3/`; verify both SHA-256 digests before adapting. Existing six runtime modules are unchanged. Huyền Ảnh is an offline playtest (0.82.3), not a final MMORPG release. All original migration and browser gates remain mandatory. Native acceptance includes independent install/remove, scoped save and backup, restore, offline launch and verified bundled upstream notices. Original game-specific physical device and long-session QA remains open. See `updates/huyen-anh-rc3/SOURCE-AND-QA.md`.

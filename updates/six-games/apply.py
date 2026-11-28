@@ -69,6 +69,7 @@ s=s.replace(anchor,"const art=e('img','cover-art');art.src=g.cover;art.alt='';ar
 p.write_text(s,encoding='utf-8')
 with (site/'hub.css').open('a',encoding='utf-8') as f:
     f.write('\n/* Real image surfaces with the same native card layout and focus. */\n.featured .cover-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block;pointer-events:none}.featured .cover::after{z-index:1;pointer-events:none}.featured .cover-label{z-index:2}.featured[data-game-id="feather-fury"] .cover-art{object-position:64% 44%}.featured[data-game-id="ky-vien"] .cover-art{object-position:70% 55%}.featured[data-game-id="garden-through-time"] .cover-art{object-position:69% 52%}\n')
+subprocess.run([sys.executable,str(src/'huyen-anh-rc3'/'apply.py'),str(root)],check=True)
 subprocess.run(['node','tools/catalog.mjs','--write'],cwd=root,check=True)
 subprocess.run(['node','tools/catalog.mjs'],cwd=root,check=True)
 subprocess.run(['node','--check','site/hub.js'],cwd=root,check=True)
@@ -93,4 +94,4 @@ assert all((site/'games'/g[0]/'index.html').exists() for g in games)
 with zipfile.ZipFile(root.parent/'release.zip','w',zipfile.ZIP_DEFLATED) as z:
     for f in sorted(root.rglob('*')):
         if f.is_file() and (f.relative_to(root).parts[0]=='site' or f.suffix not in ('.pyc','.png')):z.write(f,f.relative_to(root))
-print('PASS F1.24 six-game catalog, original source hashes, JS syntax, unchanged previous modules and offline kit')
+print('PASS F1.25 seven-game catalog, original source hashes, JS syntax, unchanged previous modules and offline kit')
