@@ -80,8 +80,8 @@ jobs:
           python candidate/tests/layout.py
       - name: Integrate and verify F1.25 seven-game release
         run: |
-          python3 updates/seven-games/apply.py candidate release
-          python3 updates/seven-games/freeze.py release
+          python3 updates/six-games/apply.py candidate release
+          python3 updates/six-games/freeze.py release
           sha256sum release.zip > release.sha256
       - uses: actions/upload-artifact@v4
         with:
